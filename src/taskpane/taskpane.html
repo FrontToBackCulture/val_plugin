@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VAL Plugin</title>
+    <script src="/src/libs/jquery-2.1.4.min.js"></script>
+    <!-- Office JavaScript API -->
+    <!-- <script
+      type="text/javascript"
+      src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"
+    ></script> -->
+    <script type="text/javascript" src="/node_modules/@microsoft/office-js/dist/office.js"></script>
+
+    <!-- For more information on Office UI Fabric, visit https://developer.microsoft.com/fabric. -->
+    <!-- <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.min.css"/>
+    <link rel="stylesheet"
+      href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.components.min.css"/>
+    <script src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js"></script> -->
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.min.css" />
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.components.min.css" />
+    <script src="/node_modules/office-ui-fabric-js/dist/js/fabric.min.js"></script>
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body class="ms-font-m">
+    <div class="padding"></div>
+    <div id="content-main">
+        <div id="content-header">
+            <span class="textAligner">
+                VAL excel plugin allows you to download your data from VAL and make
+                direct updates into VAL.
+            </span>
+        </div>
+        <div id="notification-container"></div>
+        <!-- LOGIN -->
+        <div id="loginContainer" class="container">
+            <div class="login-box">
+                <div class="padding" style:mar>
+                    <div class="ms-TextField ms-TextField">
+                        <label class="ms-Label">Username: </label>
+                        <input class="ms-TextField-field"
+                               type="text"
+                               value="hafiz@fronttobackculture.com.sg"
+                               placeholder=""
+                               id="userName" />
+                    </div>
+                </div>
+                <div class="padding">
+                    <div class="ms-TextField ms-TextField">
+                        <label class="ms-Label">Password: </label>
+                        <input class="ms-TextField-field"
+                               type="password"
+                               value="123123"
+                               placeholder=""
+                               id="userPass" />
+                    </div>
+                </div>
+
+                <div class="padding">
+                    <button class="ms-Button" id="login-button" style="margin-left: 0em">
+                        Login
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="selectionContainer" class='container'>
+            <div class="padding">
+                <div id="repoTypeDropdown" class="ms-Dropdown" tabindex="0">
+                    <label class="ms-Label">Select a Repository Type </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="repotype_selection">
+                    </select>
+                </div>
+                <div id="projectDropdown" class="ms-Dropdown" tabindex="0">
+                    <label class="ms-Label">Select a Project </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="project_selection">
+                        <option value="0">Select a Project </option>
+                    </select>
+                </div>
+                <div id="phaseDropdown" class="ms-Dropdown is-disabled" tabindex="0">
+                    <label class="ms-Label">Select a Phase </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="phase_selection">
+                        <option value="0">Select a Phase </option>
+                    </select>
+                </div>
+                <div id="repoDropdown" class="ms-Dropdown is-disabled" tabindex="0">
+                    <label class="ms-Label">Select a Repository </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="repo_selection">
+                        <option value="0">Select a Repository </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="actionContainer" class="container">
+
+            <div class="padding">
+                <button class="val-button" id="get-repo-info">Download data from VAL </button>
+            </div>
+            <div class="padding">
+                <button class="val-button" id="update-info">Upload data into VAL </button>
+            </div>
+            <div class="padding">
+                <button class="val-button" id="open-dialog">Add or update field mapping</button>
+            </div>
+
+            <!-- <div class="docs-DialogExample-blocking">
+                <div class="ms-Dialog ms-Dialog--blocking">
+                  <div class="ms-Dialog-title">Unsaved changes</div>
+                  <div class="ms-Dialog-content">
+                    <p class="ms-Dialog-subText">Are you sure you want to discard these changes?.</p>
+                    <div class="ms-CheckBox">
+                      <input tabindex="-1" type="checkbox" class="ms-CheckBox-input">
+                      <label role="checkbox" class="ms-CheckBox-field" tabindex="0" aria-checked="false" name="checkboxa">
+                        <span class="ms-Label">Option1</span> 
+                      </label>
+                    </div>
+                    <div class="ms-CheckBox">
+                      <input tabindex="-1" type="checkbox" class="ms-CheckBox-input">
+                      <label role="checkbox" class="ms-CheckBox-field" tabindex="0" aria-checked="false" name="checkboxa">
+                        <span class="ms-Label">Option2</span> 
+                      </label>
+                    </div>
+                  </div>
+                  <div class="ms-Dialog-actions">
+                    <button class="ms-Button ms-Dialog-action ms-Button--primary">
+                      <span class="ms-Button-label">Save</span> 
+                    </button>
+                    <button class="ms-Button ms-Dialog-action">
+                      <span class="ms-Button-label">Delete</span> 
+                    </button>
+                  </div>
+                </div>
+                <button class="ms-Button docs-DialogExample-button" id='open-dialog'>Open Dialog</button>
+                <label class="docs-DialogExample-label"></label>
+              </div> -->
+            <div style="margin-top: 27em; margin-right:2em">
+                <button class="ms-Button" id="backButton">
+                    <span class="ms-Button-label">Back</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="padding version">
+            <span class="headerText">version 0.1a</span>
+        </div>
+    </div>
+
+    <div></div>
+</body>
+
+<script src="/node_modules/lodash/lodash.min.js"></script>
+<!-- <script type="text/javascript" src="/build/taskpane.bundle.js"></script> -->
+<script type="text/javascript" src="./taskpane.js"></script>
+</html>
