@@ -41,7 +41,7 @@ function login() {
   try {
     let user = document.getElementById("userName").value;
     let pass = document.getElementById("userPass").value;
-    let requestObj = { url: "/login", data: { email: user, password: pass } };
+    let requestObj = { url: "/excel/login", data: { email: user, password: pass } };
     $.ajax(requestObj)
       .done(function (res) {
         if (res && res.api_token && res.api_token != "") {
@@ -89,7 +89,7 @@ function checkLoginStatus() {
 function getRepoTypeDetails() {
   return new Promise(function (resolve, reject) {
     if (token) {
-      $.ajax({ url: "/getRepoTypes", data: { api_token: token } })
+      $.ajax({ url: "/excel/getRepoTypes", data: { api_token: token } })
         .done(function (repoTypes) {
           console.log("herE");
           valObj.allRepo = repoTypes;
@@ -108,7 +108,7 @@ function getRepoTypeDetails() {
 function getUserProjects() {
   return new Promise(function (resolve, reject) {
     if (token) {
-      $.ajax({ url: "/getUserProjects", data: { api_token: token } })
+      $.ajax({ url: "/excel/getUserProjects", data: { api_token: token } })
         .done(function (projects) {
           console.log(projects);
           valObj.projects = projects;
@@ -127,7 +127,7 @@ function getUserPhases() {
   //add check so dont have to make rest call all the time 
   return new Promise((resolve, reject) => {
     if (token) {
-      $.ajax({ url: "/getUserPhases", data: { api_token: token } })
+      $.ajax({ url: "/excel/getUserPhases", data: { api_token: token } })
         .done(phases => {
           valObj.phases = phases;
           console.log(phases)
@@ -296,7 +296,7 @@ function getTableDetails(repo_id) {
     // let temp = table_name.split("_");
     // let repo_id = temp[2];
     $.ajax({
-      url: "/getRepoDetails",
+      url: "/excel/getRepoDetails",
       data: { api_token: token, repo_id: repo_id }
     })
       .done(function (res) {
@@ -353,7 +353,7 @@ function getSettings() {
           includeSettings: true
         }
 
-        requestObj = { url: "/retrieveMapping", data: options }
+        requestObj = { url: "/excel/retrieveMapping", data: options }
         $.ajax(requestObj)
           .done(res => {
             let workbookDetails = `${workbook.name}_${currentsheet.name}`
@@ -404,7 +404,7 @@ function getRepoInfo() {
           }
         }
 
-        requestObj = { url: "/pullFullData", data: options }
+        requestObj = { url: "/excel/pullFullData", data: options }
       } else {
 
         _.map(mapSettings, item => {
@@ -423,7 +423,7 @@ function getRepoInfo() {
           }
         }
 
-        requestObj = { url: "/pullPartialData", data: options }
+        requestObj = { url: "//excel/pullPartialData", data: options }
       }
 
       $.ajax(requestObj)
@@ -612,7 +612,7 @@ function openDialog() {
         let excelHeaders = _.flatten(headerRange.values)
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
-          'https://localhost:3000/popup.html?',
+          'https://localhost:9000/popup.html?',
           { height: 45, width: 55 },
           // TODO2: Add callback parameter.
           function (result) {
@@ -758,7 +758,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
           comment: 'Update from XLS Plugin'
 
         }
-        $.ajax({ url: "/updateRecord", data: all_params })
+        $.ajax({ url: "/excel/updateRecord", data: all_params })
           .done(res => {
             // app.showNotification("Successfully uploaded data into VAL", 'success')
           })
@@ -855,7 +855,7 @@ function saveSettings(itemToSave) {
           settings: itemToSave
         }
         localStorage.setItem("mapSettings", JSON.stringify(itemToSave));
-        requestObj = { url: "/saveMapping", data: options }
+        requestObj = { url: "//excel/saveMapping", data: options }
         $.ajax(requestObj)
           .done(res => {
             console.log(res)

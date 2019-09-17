@@ -12,11 +12,11 @@ app.use('/src', Express.static(path.join(__dirname, 'src')));
 app.use('/node_modules', Express.static(path.join(__dirname, 'node_modules')));
 app.use('/build', Express.static(path.join(__dirname, 'build')));
 
-// app.get("/", (request, response, next) => {
+// app.get("/excel/", (request, response, next) => {
 //     response.sendFile(__dirname + '/src/taskpane/taskpane.html');
 // });
 
-app.get("/pullFullData", (req, res) => {
+app.get("/excel/pullFullData", (req, res) => {
     console.log("PULLING FULL DATA ===========>")
     console.log(req.query)
     let options = {
@@ -33,7 +33,7 @@ app.get("/pullFullData", (req, res) => {
 
 });
 
-app.get("/pullPartialData", (req, res) => {
+app.get("/excel/pullPartialData", (req, res) => {
     let options = {
         // url: "val.fronttobackculture.com/api/1/repo/retrieve_records",
         url: `${valURL}/api/1/repo/retrieve_records`,
@@ -46,7 +46,7 @@ app.get("/pullPartialData", (req, res) => {
         res.send(body)
     })
 });
-app.get("/saveMapping", (req, res) => {
+app.get("/excel/saveMapping", (req, res) => {
     let options = {
         // url: "https://val.fronttobackculture.com/api/1/saveSettings",
         url: `${valURL}/api/1/saveSettings`,
@@ -60,7 +60,7 @@ app.get("/saveMapping", (req, res) => {
         res.send(body)
     })
 });
-app.get("/retrieveMapping", (req, res) => {
+app.get("/excel/retrieveMapping", (req, res) => {
     let options = {
         // url: "https://val.fronttobackculture.com/api/1/getsettings",
         url: `${valURL}/api/1/getsettings`,
@@ -75,14 +75,14 @@ app.get("/retrieveMapping", (req, res) => {
     })
 });
 
-app.get("/getRepoDetails", (req, res) => {
+app.get("/excel/getRepoDetails", (req, res) => {
     // request(`https://val.fronttobackculture.com/api/1/query/repo/getrepotable?api_token=${req.query.api_token}&repo_id=${req.query.repo_id}`, (err, resp, body) => {
     request(`${valURL}/api/1/query/repo/getrepotable?api_token=${req.query.api_token}&repo_id=${req.query.repo_id}`, (err, resp, body) => {
         res.send(JSON.parse(body))
     })
 })
 
-app.get("/getRepoTypes", (req, res) => {
+app.get("/excel/getRepoTypes", (req, res) => {
     // request(`https://val.fronttobackculture.com/api/1/query/repo/getrepotype?api_token=${req.query.api_token}`, (err, resp, body) => {
     request(`${valURL}/api/1/query/repo/getrepotype?api_token=${req.query.api_token}`, (err, resp, body) => {
         console.log("==================>getRepoTypes")
@@ -90,7 +90,7 @@ app.get("/getRepoTypes", (req, res) => {
         res.send(JSON.parse(body))
     })
 })
-app.get("/getUserProjects", (req, res) => {
+app.get("/excel/getUserProjects", (req, res) => {
     console.log("GETTING PROJECTS ===========>")
     // request(`https://val.fronttobackculture.com/api/1/getAllProjects?api_token=${req.query.api_token}`, (err, resp, body) => {
     request(`${valURL}/api/1/getAllProjects?api_token=${req.query.api_token}`, (err, resp, body) => {
@@ -98,7 +98,7 @@ app.get("/getUserProjects", (req, res) => {
     })
 })
 
-app.get("/getUserPhases", (req, res) => {
+app.get("/excel/getUserPhases", (req, res) => {
     console.log("GETTING PHASE ===========>")
     let propertiesObject = {
         api_token: req.query.api_token
@@ -110,7 +110,7 @@ app.get("/getUserPhases", (req, res) => {
     })
 })
 
-app.get("/updateRecord", (req, res) => {
+app.get("/excel/updateRecord", (req, res) => {
     console.log("=====> sending update rest api", req.query)
     var options = {
         "method": "PATCH",
@@ -125,13 +125,14 @@ app.get("/updateRecord", (req, res) => {
 
     request(options, function (error, response, body) {
         if (error) {
+            console.log(error)
             throw new Error(error);
         }
         res.send();
     });
 })
 
-app.get("/login", (req, res) => {
+app.get("/excel/login", (req, res) => {
     let options = {
         // url: "https://val.fronttobackculture.com/api/1/login",
         url: `${valURL}/api/1/login`,
@@ -155,7 +156,7 @@ app.get("/login", (req, res) => {
 HTTPS.createServer({
     key: FS.readFileSync("server.key"),
     cert: FS.readFileSync("server.crt")
-}, app).listen(3000, () => {
+}, app).listen(9000, () => {
     console.log("Listening at :3000...");
 });
 
