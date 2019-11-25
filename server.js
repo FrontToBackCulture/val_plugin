@@ -6,7 +6,9 @@ const request = require("request");
 var app = Express();
 
 var path = require('path');
-const valURL = `http://ec2-18-139-42-208.ap-southeast-1.compute.amazonaws.com`;
+// const valURL = `http://ec2-18-139-42-208.ap-southeast-1.compute.amazonaws.com`;
+// const valURL = `http://localhost:8080`;
+const valURL = `https://val.fronttobackculture.com`
 app.use('/', Express.static(path.join(__dirname, '/src/taskpane')));
 app.use('/src', Express.static(path.join(__dirname, 'src')));
 app.use('/node_modules', Express.static(path.join(__dirname, 'node_modules')));
@@ -157,7 +159,7 @@ HTTPS.createServer({
     key: FS.readFileSync("server.key"),
     cert: FS.readFileSync("server.crt")
 }, app).listen(9000, () => {
-    console.log("Listening at :3000...");
+    console.log("Listening at :9000...");
 });
 
 // HTTP.createServer(app).listen(3000, () => {

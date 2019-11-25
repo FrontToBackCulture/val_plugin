@@ -6,6 +6,7 @@ var mapSettings = [];
 
 Office.onReady(function (info) {
   $(document).ready(function () {
+    OfficeExtension.config.extendedErrorLogging = true;
     document.getElementById("login-button").onclick = login;
     document.getElementById("get-repo-info").onclick = getRepoInfo;
     document.getElementById("update-info").onclick = syncToVAL;
@@ -44,8 +45,9 @@ function login() {
     let requestObj = { url: "/excel/login", data: { email: user, password: pass } };
     $.ajax(requestObj)
       .done(function (res) {
-        if (res && res.api_token && res.api_token != "") {
-          token = res.api_token;
+        // if (res && res.api_token && res.api_token != "") {
+        if (res && res.user) {
+          token = res.user;
           console.log(token);
           localStorage.setItem("user_token", token);
           loggedIn = true;
@@ -89,6 +91,7 @@ function checkLoginStatus() {
 function getRepoTypeDetails() {
   return new Promise(function (resolve, reject) {
     if (token) {
+      console.log('check token', token)
       $.ajax({ url: "/excel/getRepoTypes", data: { api_token: token } })
         .done(function (repoTypes) {
           console.log("herE");
@@ -292,7 +295,6 @@ function handleSelectionChanges(type, valueToStore) {
 function getTableDetails(repo_id) {
   return new Promise(function (resolve, reject) {
     // return Excel.run(function (context) {
-    console.log(2);
     // let temp = table_name.split("_");
     // let repo_id = temp[2];
     $.ajax({
@@ -553,7 +555,6 @@ function updateDisplayTable(pk_db, content, columns) {
 
         let newRange = numToSSColumn(headers.length)
         var table = sheet.tables.add(`A1:${newRange}1`, true);
-
         table.name = content.table_name;
         let arrayHeader = [];
         arrayHeader.push(headers)
@@ -783,7 +784,6 @@ function convertToExcelTable(rawContent) {
         headers.push(field.display)
       }
     })
-
     let newRange = numToSSColumn(headers.length)
     var table = sheet.tables.add(`A1:${newRange}1`, true);
     console.log(rawContent)
@@ -801,7 +801,8 @@ function convertToExcelTable(rawContent) {
           temp.push(val[field.column_name])
         }
       })
-      tableRows.add(null, [temp])
+      const valuesToPush = convertFieldsToDisplay(temp)
+      tableRows.add(null, [valuesToPush])
     })
 
     console.log("CHECK THIS")
@@ -837,6 +838,33 @@ function numToSSColumn(num) {
   }
   return s || undefined;
 };
+
+function convertFieldsToDisplay(values) {
+  try {
+    if (values && values.length > 0) {
+      const newValues = values.map(item => {
+        if (typeof item == "object") {
+          return newItem = item.reduce((accum, innerItem) => {
+            if (accum == "") {
+              return accum + `${innerItem}`
+            }
+            else {
+              return accum + `, ${innerItem}`
+            }
+          }, "")
+        } else {
+          return item;
+        }
+      })
+
+      return newValues;
+    } else {
+      return []
+    }
+  } catch (err) {
+    console.log(err)
+  }
+}
 
 
 function saveSettings(itemToSave) {
