@@ -303,7 +303,8 @@ function getTableDetails(repo_id) {
     })
       .done(function (res) {
         console.log(res);
-        let toReturn = _.find(res.records, { tablename: selectionModel.repo });
+        // let toReturn = _.find(res.records, { tablename: selectionModel.repo });
+        let toReturn = res.records.find(({ tablename }) => tablename == selectionModel.repo);
         currentTableInfo = res.records;
         console.log(currentTableInfo);
         valObj.repoTableSelection = currentTableInfo;
@@ -409,7 +410,7 @@ function getRepoInfo() {
         requestObj = { url: "/excel/pullFullData", data: options }
       } else {
 
-        _.map(mapSettings, item => {
+        mapSettings.map(item => {
           if (item.valField != "None") {
             columns.push(item.valField)
           }
@@ -447,7 +448,8 @@ function getRepoInfo() {
             let table_pk = ''
             getRepoTypeDetails()
               .then(res => {
-                let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
+                // let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
+                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repo_id))
                 table_pk = currentRepo.repo_primary_key
 
                 updateDisplayTable(table_pk, records, columnsMapped);
@@ -478,10 +480,12 @@ function updateDisplayTable(pk_db, content, columns) {
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     var tableToUpdate = sheet.tables.getItem(currentTable);
     let displayColumn = [];
-    _.map(columns, col => {
-      let temp = _.find(content.fields, { 'column_name': col })
+    columns.map(col => {
+      // let temp = _.find(content.fields, { 'column_name': col })
+      let temp = content.fields.find(({ column_name }) => column_name == col)
       if (temp) {
-        let foundDetails = _.find(mapSettings, { 'valField': col })
+        // let foundDetails = _.find(mapSettings, { 'valField': col })
+        let foundDetails = mapSettings.find({ valField })
         displayColumn.push(foundDetails.header)
       }
     })
@@ -489,15 +493,17 @@ function updateDisplayTable(pk_db, content, columns) {
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     var bodyRange = tableToUpdate.getDataBodyRange().load("values");
 
-    let pk = (_.find(content.fields, { 'column_name': pk_db })).display
+    // let pk = (_.find(content.fields, { 'column_name': pk_db })).display
+    let pk = (content.fields.find(({ column_name }) => column_name == pk_db)).display
     return ctx.sync()
       .then(() => {
-        let headers = _.flatten(headerRange.values);
+        // let headers = _.flatten(headerRange.values);
+        let headers = headerRange.values.flat();
         let toUpdateValues = []
         let bodyContent = bodyRange.values;
-        _.map(content.records, (val, key) => {
+        content.records.map((val, key) => {
           let obj = {};
-          _.forEach(columns, (col, index) => {
+          columns.forEach((col, index) => {
             if (val[col]) {
               obj[col] = val[col]
             }
@@ -507,7 +513,7 @@ function updateDisplayTable(pk_db, content, columns) {
         })
         let indexerObj = {}
 
-        _.map(headers, (val, key) => {
+        headers.map((val, key) => {
           if (displayColumn.indexOf(val) >= 0) {
             indexerObj[val] = key
           }
@@ -516,32 +522,33 @@ function updateDisplayTable(pk_db, content, columns) {
         let newData = [];
 
         let pk_index = 0;
-        _.map(headers, (column, col_index) => {
+        headers((column, col_index) => {
           if (column == pk) {
             pk_index = col_index;
           }
         })
         let objDataIndex = {};
-        _.map(bodyContent, (row) => {
+        bodyContent.map((row) => {
           objDataIndex[row[pk_index]] = row;
         })
 
         console.log(objDataIndex)
         console.log(toUpdateValues)
-        _.map(toUpdateValues, (row) => {
+        toUpdateValues.map((row) => {
           let newRow = [];
-          _.map(headers, (column) => {
+          headers.map((column) => {
             newRow.push(row[column])
           })
           newData.push(row)
 
           //update bodyContent
-          _.map(displayColumn, (col) => {
+          displayColumn.map((col) => {
             if (col == pk) {
             } else {
               let indexToupdate = indexerObj[col]
               //get the mapping 
-              let mappedField = _.find(mapSettings, { "header": col })
+              // let mappedField = _.find(mapSettings, { "header": col })
+              let mappedField = mapSettings.find(({ header }) => header == col)
               objDataIndex[row[pk_db]][indexToupdate] = row[mappedField.valField];
             }
           })
@@ -562,9 +569,11 @@ function updateDisplayTable(pk_db, content, columns) {
 
 
 
-        let tempTable = _.filter(objDataIndex, item => {
-          return item;
-        })
+        // let tempTable = _.filter(objDataIndex, item => {
+        //   return item;
+        // })
+
+        let tempTable = objDataIndex.filter(item => item)
 
         table.rows.add(null, tempTable);
         if (Office.context.requirements.isSetSupported("ExcelApi", 1.2)) {
@@ -610,7 +619,8 @@ function openDialog() {
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     return ctx.sync()
       .then(() => {
-        let excelHeaders = _.flatten(headerRange.values)
+        // let excelHeaders = _.flatten(headerRange.values)
+        let excelHeaders = headerRange.values.flat()
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
           'https://localhost:9000/popup.html?',
@@ -653,7 +663,8 @@ function syncToVAL() {
 
         return getRepoTypeDetails()
           .then(allRepo => {
-            let currentRepo = _.find(allRepo, { "repo_id": parseInt(repo_id) })
+            // let currentRepo = _.find(allRepo, { "repo_id": parseInt(repo_id) })
+            let currentRepo = allRepo.find(({ repo_id }) => repo_id == parseInt(repo_id))
             table_pk = currentRepo.repo_primary_key
             console.log(table_pk)
             return getTableDetails(temp[2])
@@ -662,7 +673,7 @@ function syncToVAL() {
             let selectedColumnObj = []
             let selectedCol = []
             console.log(mapSettings)
-            _.map(mapSettings, item => {
+            mapSettings.map(item => {
               if (item.valField && item.valField != "None") {
                 if (item.valField != table_pk) {
                   selectedCol.push(item.valField)
@@ -670,7 +681,7 @@ function syncToVAL() {
               }
             })
             console.log(details)
-            _.map(details.fields, field => {
+            details.field.map(field => {
               if (selectedCol.indexOf(field.column_name) >= 0) {
                 let obj = {
                   selectedField: field.column_name,
@@ -702,12 +713,14 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
     return ctx.sync()
       .then(() => {
-        let headers = _.flattenDeep(headerRange.values);
+        // let headers = _.flattenDeep(headerRange.values);
+        let header = headerRange.values.flat();
         let xlsData = [];
-        _.map(bodyRange.values, (row, index) => {
+        bodyRange.values.map((row, index) => {
           let rowObj = {};
-          _.map(headers, (header, colNum) => {
-            let temp = _.find(mapSettings, { 'header': header })
+          headers.map((header, colNum) => {
+            // let temp = _.find(mapSettings, { 'header': header })
+            let temp = mapSettings.find(({ header }) => header == header)
             if (temp) {
               rowObj[temp.valField] = row[colNum];
             }
@@ -720,7 +733,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
 
         let indexer = 1;
-        _.map(tableDetails.fields, fields => {
+        tableDetails.fields.map(fields => {
           if (fields.column_name == pk) {
             fields.field_name = "id";
             columnsToUpdate.push(fields);
@@ -731,7 +744,8 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
             })
 
           } else {
-            if (_.find(selectedColumn, { 'selectedField': fields.column_name })) {
+            // if (_.find(selectedColumn, { 'selectedField': fields.column_name })) {
+            if (selectedColumn.find(({ selectedField }) => selectedField == fields.column_name) {
               fields.field_name = `value${indexer}`;
               columnsToUpdate.push(fields);
               indexer++;
@@ -742,9 +756,9 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
         let content = [];
 
-        _.map(xlsData, rec => {
+        xlsData.map(rec => {
           let obj = {}
-          _.map(columnsToUpdate, field => {
+          columnsToUpdate.map(field => {
             obj[field.field_name] = rec[field.column_name]
           })
           content.push(obj)
@@ -779,7 +793,7 @@ function convertToExcelTable(rawContent) {
   Excel.run(function (ctx) {
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     let headers = [];
-    _.map(rawContent.fields, (field, index) => {
+    rawContent.fields.map((field, index) => {
       if (field.display && field.display != "Updated Date") {
         headers.push(field.display)
       }
@@ -794,9 +808,9 @@ function convertToExcelTable(rawContent) {
 
     var tableRows = table.rows;
     var items = rawContent.records;
-    _.map(items, (val, index) => {
+    items.map((val, index) => {
       let temp = []
-      _.forEach(rawContent.fields, (field) => {
+      rawContent.fields.forEach((field) => {
         if (field.column_name != "updated_date") {
           temp.push(val[field.column_name])
         }
@@ -807,7 +821,7 @@ function convertToExcelTable(rawContent) {
 
     console.log("CHECK THIS")
     let mapping = [];
-    _.map(rawContent.fields, field => {
+    rawContent.fields.map(field => {
       if (field.column_name != "updated_date") {
         mapping.push({ header: field.display, valField: field.column_name })
       }
@@ -904,13 +918,13 @@ function verifyMapping(mappingArr) {
   let checkForDuplicate = [];
   console.log(mappingArr)
   //isolate the stuff users selsected
-  _.map(mappingArr, item => {
+  mappingArr.map(item => {
     checkForDuplicate.push(item.valField)
   })
 
   let tempArr = []
   let duplicateItem = []
-  _.map(checkForDuplicate, item => {
+  checkForDuplicate.map(item => {
     console.log(item)
     if (item == pk) {
       pkMapped = true; // Ensure that pk is mapped
