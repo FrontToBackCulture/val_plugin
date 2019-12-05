@@ -128,10 +128,10 @@ function getUserProjects() {
 
 function getUserPhases() {
   //add check so dont have to make rest call all the time 
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     if (token) {
       $.ajax({ url: "/excel/getUserPhases", data: { api_token: token } })
-        .done(phases => {
+        .done(function (phases) {
           valObj.phases = phases;
           console.log(phases)
 
@@ -341,12 +341,12 @@ function checkSelections() {
 
 
 function getSettings() {
-  Excel.run(ctx => {
+  Excel.run(function (ctx) {
     let requestObj = {}
     let workbook = ctx.workbook.load('name');
     let currentsheet = ctx.workbook.worksheets.getActiveWorksheet().load('name');
     return ctx.sync()
-      .then(() => {
+      .then(function () {
 
         let options = {
           api_token: token,
@@ -358,7 +358,7 @@ function getSettings() {
 
         requestObj = { url: "/excel/retrieveMapping", data: options }
         $.ajax(requestObj)
-          .done(res => {
+          .done(function (res) {
             let workbookDetails = `${workbook.name}_${currentsheet.name}`
             if (res && res.length > 0 && res[0].settings) {
               if (workbookDetails == res[0].name) {
@@ -496,7 +496,7 @@ function updateDisplayTable(pk_db, content, columns) {
     // let pk = (_.find(content.fields, { 'column_name': pk_db })).display
     let pk = (content.fields.find(({ column_name }) => column_name == pk_db)).display
     return ctx.sync()
-      .then(() => {
+      .then(function () {
         // let headers = _.flatten(headerRange.values);
         let headers = headerRange.values.flat();
         let toUpdateValues = []
@@ -585,7 +585,7 @@ function updateDisplayTable(pk_db, content, columns) {
         return ctx.sync();
       })
   })
-    .catch(error => {
+    .catch(function (error) {
       // app.showNotification("Error: " + error);
       console.log("Error: " + error);
       if (error instanceof OfficeExtension.Error) {
@@ -602,7 +602,7 @@ function dialogVerify() {
   }
   else {
     getTableDetails(selectionModel.repo)
-      .then(res => {
+      .then(function (res) {
         currentTableInfo = res;
         openDialog();
       })
@@ -618,7 +618,7 @@ function openDialog() {
     var tableToUpdate = sheet.tables.getItem(selectionModel.repo);
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     return ctx.sync()
-      .then(() => {
+      .then(function () {
         // let excelHeaders = _.flatten(headerRange.values)
         let excelHeaders = headerRange.values.flat()
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
