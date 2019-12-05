@@ -158,6 +158,7 @@ function setOptionsForDropDown(type) {
         theDropDown.querySelector("select").innerHTML =
           '<option value="0">Select a Repository Type </option>';
         valObj.allRepo.map(function (repo) {
+          
           // theDropDown.querySelector("select").innerHTML += '<option value="${repo.repo_id}">${repo.repo_name}</option>';
           theDropDown.querySelector("select").innerHTML += "<option value = " + repo.repo_id + ">" + repo.repo_name + "</option>";
         });
@@ -377,10 +378,10 @@ function getSettings() {
 
 function getRepoInfo() {
   // Run a batch operation against the Excel object model
+  let fullData = true;
   Excel.run(function (ctx) {
     $('#notification-message').hide();
     let requestObj = {};
-    let fullData = true;
     let columns = [];
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     let table = selectionModel.repo
@@ -393,7 +394,7 @@ function getRepoInfo() {
           break;
         }
       }
-      console.log(fullData)
+      console.log("fullData", fullData)
       if (fullData) {
         console.log(token)
         let options = {
@@ -428,12 +429,14 @@ function getRepoInfo() {
 
       $.ajax(requestObj)
         .done(function (data) {
-
+          console.log("CHECK ME PLEASe",fullData)
           let records = JSON.parse(data);
           console.log(records)
           currentTable = records.table_name;
           localStorage.setItem("tableDetails", JSON.stringify(records));
           tableDetails = records;
+
+          console.log("CHECK FULL DATA", fullData)
           if (fullData) {
             convertToExcelTable(records);
 
@@ -655,21 +658,23 @@ function syncToVAL() {
     return ctx.sync()
       .then(function () {
         let temp = currentTable.split("_")
-        let repo_id = temp[2]
+        let repoIdToFind = temp[2]
         let table_pk = ''
 
         return getRepoTypeDetails()
           .then(function (allRepo) {
             // let currentRepo = _.find(allRepo, { "repo_id": parseInt(repo_id) })
-            let currentRepo = allRepo.find(({ repo_id }) => repo_id == parseInt(repo_id))
+            console.log("repoIdToFind", repoIdToFind)
+            let currentRepo = allRepo.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
             table_pk = currentRepo.repo_primary_key
-            console.log(table_pk)
+            console.log("table_pk", table_pk)
             return getTableDetails(temp[2])
           })
           .then(function (details) {
             let selectedColumnObj = []
             let selectedCol = []
             console.log(mapSettings)
+            console.log("MAP SETTINGS???", mapSettings)
             mapSettings.map(item => {
               if (item.valField && item.valField != "None") {
                 if (item.valField != table_pk) {
@@ -677,8 +682,8 @@ function syncToVAL() {
                 }
               }
             })
-            console.log(details)
-            details.field.map(field => {
+            console.log("details?", details.fields)
+            details.fields.map(field => {
               if (selectedCol.indexOf(field.column_name) >= 0) {
                 let obj = {
                   selectedField: field.column_name,
@@ -688,7 +693,7 @@ function syncToVAL() {
               }
             })
 
-            console.log(selectedColumnObj)
+            console.log("selectedColumnObj", selectedColumnObj)
             prepDataForUpdate(table_pk, details, selectedColumnObj)
           })
       })
@@ -701,6 +706,7 @@ function syncToVAL() {
 
 function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
   Excel.run(function (ctx) {
+    console.log("PREPPING THIS UPPPPPP")
     let selectedColumn = selectedColumnObj//user defined 
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     var tableToUpdate = sheet.tables.getItem(currentTable);
@@ -710,12 +716,15 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
     return ctx.sync()
       .then(function () {
+        console.log(123, headerRange.values)
         // let headers = _.flattenDeep(headerRange.values);
-        let header = headerRange.values.flat();
+        let headers = headerRange.values
+        console.log("NANI HEADERS", headers)
         let xlsData = [];
         bodyRange.values.map((row, index) => {
           let rowObj = {};
           headers.map((header, colNum) => {
+            console.log("ÏTERATION", header)
             // let temp = _.find(mapSettings, { 'header': header })
             let temp = mapSettings.find(({ header }) => header == header)
             if (temp) {
