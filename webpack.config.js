@@ -28,25 +28,37 @@
 const path = require('path');
 
 module.exports = {
-  devtool: "inline-source-map",
-  entry:  {
+	devtool: "inline-source-map",
+	entry: {
 		main: [
 			'@babel/polyfill',
 			'./src/taskpane/taskpane.js',
 		]
 	},
 	mode: 'development',
-  output: {
-    filename: 'taskpane.bundle.js',
-    path: path.resolve(__dirname + '/build', "")
-  },
-  module: {
+	output: {
+		filename: 'taskpane.bundle.js',
+		path: path.resolve(__dirname + '/build', "")
+	},
+	module: {
 		rules: [{
 			test: /\.js$/,
 			exclude: /node_modules/,
 			use: {
 				loader: 'babel-loader',
+				options: {
+					presets: [
+						["@babel/preset-env",
+						 {
+							 targets: {
+								"ie": "11"
+							 },
+							 useBuiltIns: "usage"
+						}]
+					]
+				}
 			}
+			
 		}]
 	},
 };

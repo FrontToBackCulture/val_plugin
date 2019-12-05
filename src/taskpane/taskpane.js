@@ -6,7 +6,8 @@ var mapSettings = [];
 
 Office.onReady(function (info) {
   $(document).ready(function () {
-    OfficeExtension.config.extendedErrorLogging = true;
+    // OfficeExtension.config.extendedErrorLogging = true;
+    localStorage.clear("user_token");
     document.getElementById("login-button").onclick = login;
     document.getElementById("get-repo-info").onclick = getRepoInfo;
     document.getElementById("update-info").onclick = syncToVAL;
@@ -50,7 +51,7 @@ function login() {
           token = res.user;
           console.log(token);
           localStorage.setItem("user_token", token);
-          loggedIn = true;
+          // loggedIn = true;
           checkLoginStatus();
         }
       })
