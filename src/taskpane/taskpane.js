@@ -370,10 +370,6 @@ function getSettings() {
               localStorage.removeItem(mapSettings)
             }
           })
-          .fail((jqXHR, textStatus, errorThrown) => {
-
-          })
-
       })
   })
 };
@@ -447,7 +443,7 @@ function getRepoInfo() {
             let repo_id = temp[2]
             let table_pk = ''
             getRepoTypeDetails()
-              .then(res => {
+              .then(function (res) {
                 // let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
                 let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repo_id))
                 table_pk = currentRepo.repo_primary_key
@@ -656,20 +652,20 @@ function syncToVAL() {
     $('#notification-message').hide();
     currentTable = selectionModel.repo;
     return ctx.sync()
-      .then(() => {
+      .then(function () {
         let temp = currentTable.split("_")
         let repo_id = temp[2]
         let table_pk = ''
 
         return getRepoTypeDetails()
-          .then(allRepo => {
+          .then(function (allRepo) {
             // let currentRepo = _.find(allRepo, { "repo_id": parseInt(repo_id) })
             let currentRepo = allRepo.find(({ repo_id }) => repo_id == parseInt(repo_id))
             table_pk = currentRepo.repo_primary_key
             console.log(table_pk)
             return getTableDetails(temp[2])
           })
-          .then(details => {
+          .then(function (details) {
             let selectedColumnObj = []
             let selectedCol = []
             console.log(mapSettings)
@@ -697,7 +693,7 @@ function syncToVAL() {
       })
 
   })
-    .catch(err => {
+    .catch(function (err) {
       console.log(err)
     })
 }
@@ -712,7 +708,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
 
     return ctx.sync()
-      .then(() => {
+      .then(function () {
         // let headers = _.flattenDeep(headerRange.values);
         let header = headerRange.values.flat();
         let xlsData = [];
@@ -774,7 +770,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
         }
         $.ajax({ url: "/excel/updateRecord", data: all_params })
-          .done(res => {
+          .done(function (res) {
             // app.showNotification("Successfully uploaded data into VAL", 'success')
           })
           .fail(function (jqXHR, textStatus, errorThrown) {
@@ -833,7 +829,7 @@ function convertToExcelTable(rawContent) {
     // app.showNotification("Successfully imported data from VAL", 'success')
     return ctx.sync();
   })
-    .catch(error => {
+    .catch(function (error) {
       // app.showNotification("Error: " + error);
       console.log("Error: " + error);
       if (error instanceof OfficeExtension.Error) {
@@ -882,13 +878,13 @@ function convertFieldsToDisplay(values) {
 
 
 function saveSettings(itemToSave) {
-  Excel.run(ctx => {
+  Excel.run(function (ctx) {
     let requestObj = {}
     let workbook = ctx.workbook.load('name');
     let currentsheet = ctx.workbook.worksheets.getActiveWorksheet().load('name');
     mapSettings = itemToSave;
     return ctx.sync()
-      .then(() => {
+      .then(function () {
         let options = {
           api_token: token,
           type: 'excel_plugin_mapping',
@@ -899,12 +895,9 @@ function saveSettings(itemToSave) {
         localStorage.setItem("mapSettings", JSON.stringify(itemToSave));
         requestObj = { url: "//excel/saveMapping", data: options }
         $.ajax(requestObj)
-          .done(res => {
+          .done(function (res) {
             console.log(res)
             console.log("HUEHUEHUE")
-          })
-          .fail((jqXHR, textStatus, errorThrown) => {
-
           })
 
       })
