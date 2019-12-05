@@ -745,7 +745,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 
           } else {
             // if (_.find(selectedColumn, { 'selectedField': fields.column_name })) {
-            if (selectedColumn.find(({ selectedField }) => selectedField == fields.column_name) {
+            if (selectedColumn.find(({ selectedField }) => selectedField == fields.column_name)) {
               fields.field_name = `value${indexer}`;
               columnsToUpdate.push(fields);
               indexer++;
