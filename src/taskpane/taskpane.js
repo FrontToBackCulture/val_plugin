@@ -3,6 +3,7 @@ var valObj = {};
 var selectionModel = {};
 var currentTableInfo = {};
 var mapSettings = [];
+var dialog;
 
 Office.onReady(function (info) {
   $(document).ready(function () {
@@ -158,7 +159,7 @@ function setOptionsForDropDown(type) {
         theDropDown.querySelector("select").innerHTML =
           '<option value="0">Select a Repository Type </option>';
         valObj.allRepo.map(function (repo) {
-          
+
           // theDropDown.querySelector("select").innerHTML += '<option value="${repo.repo_id}">${repo.repo_name}</option>';
           theDropDown.querySelector("select").innerHTML += "<option value = " + repo.repo_id + ">" + repo.repo_name + "</option>";
         });
@@ -408,12 +409,12 @@ function getRepoInfo() {
         requestObj = { url: "/excel/pullFullData", data: options }
       } else {
 
-        mapSettings.map(item => {
+        columns = mapSettings.map(item => {
           if (item.valField != "None") {
-            columns.push(item.valField)
+            return item.valField
           }
         })
-        columnsMapped = columns
+        // const columnsMapped = columns
 
         //add checker to ensure no blank column
         let options = {
@@ -424,21 +425,32 @@ function getRepoInfo() {
           }
         }
 
-        requestObj = { url: "//excel/pullPartialData", data: options }
+        requestObj = { url: "/excel/pullPartialData", data: options }
       }
-
       $.ajax(requestObj)
         .done(function (data) {
-          console.log("CHECK ME PLEASe",fullData)
           let records = JSON.parse(data);
           console.log(records)
-          currentTable = records.table_name;
+          var currentTable = records.table_name;
+          localStorage.setItem("currentTable", currentTable)
           localStorage.setItem("tableDetails", JSON.stringify(records));
-          tableDetails = records;
+
 
           console.log("CHECK FULL DATA", fullData)
           if (fullData) {
-            convertToExcelTable(records);
+
+            getRepoTypeDetails()
+              .then(function (res) {
+                let temp = currentTable.split("_")
+                let repoIdToFind = temp[2]
+
+                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
+
+                var table_pk = currentRepo.repo_primary_key
+
+                localStorage.setItem("current_pk", JSON.stringify(table_pk));
+                convertToExcelTable(records);
+              })
 
           } else {
             console.log("huehuehu here MATEY")
@@ -449,10 +461,12 @@ function getRepoInfo() {
             getRepoTypeDetails()
               .then(function (res) {
                 // let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
+
                 let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repo_id))
                 table_pk = currentRepo.repo_primary_key
 
-                updateDisplayTable(table_pk, records, columnsMapped);
+                localStorage.setItem("current_pk", JSON.stringify(table_pk));
+                updateDisplayTable(table_pk, records, columns);
               })
 
           }
@@ -477,6 +491,7 @@ function getRepoInfo() {
 }
 function updateDisplayTable(pk_db, content, columns) {
   Excel.run(function (ctx) {
+    const currentTable = localStorage.getItem("currentTable");
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     var tableToUpdate = sheet.tables.getItem(currentTable);
     let displayColumn = [];
@@ -494,7 +509,12 @@ function updateDisplayTable(pk_db, content, columns) {
     var bodyRange = tableToUpdate.getDataBodyRange().load("values");
 
     // let pk = (_.find(content.fields, { 'column_name': pk_db })).display
-    let pk = (content.fields.find(({ column_name }) => column_name == pk_db)).display
+
+    // let findpk = content.fields.find(({ column_name }) => column_name == pk_db)
+    let findpk = content.fields.filter(item => item.column_name == pk_db)
+
+    console.log("findpk", findpk)
+    let pk = findpk.display
     return ctx.sync()
       .then(function () {
         // let headers = _.flatten(headerRange.values);
@@ -624,7 +644,7 @@ function openDialog() {
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
           'https://localhost:9000/popup.html?',
-          { height: 45, width: 55 },
+          { height: 45, width: 20, displayInIframe: true },
           // TODO2: Add callback parameter.
           function (result) {
             dialog = result.value;
@@ -643,6 +663,7 @@ function processMessage(arg) {
     let verifier = verifyMapping(mappingArr)
     if (verifier) {
       //save into ui_settings_master
+      localStorage.setItem("mapSettings", JSON.stringify(mappingArr));
       saveSettings(mappingArr)
     } else {
       //your Pk field is not mapped or there are duplicates in your mapping. 
@@ -654,7 +675,7 @@ function processMessage(arg) {
 function syncToVAL() {
   Excel.run(function (ctx) {
     $('#notification-message').hide();
-    currentTable = selectionModel.repo;
+    var currentTable = selectionModel.repo;
     return ctx.sync()
       .then(function () {
         let temp = currentTable.split("_")
@@ -664,10 +685,8 @@ function syncToVAL() {
         return getRepoTypeDetails()
           .then(function (allRepo) {
             // let currentRepo = _.find(allRepo, { "repo_id": parseInt(repo_id) })
-            console.log("repoIdToFind", repoIdToFind)
             let currentRepo = allRepo.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
             table_pk = currentRepo.repo_primary_key
-            console.log("table_pk", table_pk)
             return getTableDetails(temp[2])
           })
           .then(function (details) {
@@ -705,147 +724,164 @@ function syncToVAL() {
 }
 
 function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
-  Excel.run(function (ctx) {
-    console.log("PREPPING THIS UPPPPPP")
-    let selectedColumn = selectedColumnObj//user defined 
-    var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-    var tableToUpdate = sheet.tables.getItem(currentTable);
-    var headerRange = tableToUpdate.getHeaderRowRange().load("values");
-    var bodyRange = tableToUpdate.getDataBodyRange().load("values");
+  try {
+    Excel.run(function (ctx) {
+      console.log("PREPPING THIS UPPPPPP")
+      var currentTable = localStorage.getItem("currentTable")
+      let selectedColumn = selectedColumnObj//user defined 
+      var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+      var tableToUpdate = sheet.tables.getItem(currentTable);
+      var headerRange = tableToUpdate.getHeaderRowRange().load("values");
+      var bodyRange = tableToUpdate.getDataBodyRange().load("values");
 
 
-    return ctx.sync()
-      .then(function () {
-        console.log(123, headerRange.values)
-        // let headers = _.flattenDeep(headerRange.values);
-        let headers = headerRange.values
-        console.log("NANI HEADERS", headers)
-        let xlsData = [];
-        bodyRange.values.map((row, index) => {
-          let rowObj = {};
-          headers.map((header, colNum) => {
-            console.log("ÏTERATION", header)
-            // let temp = _.find(mapSettings, { 'header': header })
-            let temp = mapSettings.find(({ header }) => header == header)
-            if (temp) {
-              rowObj[temp.valField] = row[colNum];
+      return ctx.sync()
+        .then(function () {
+
+          // let headers = _.flattenDeep(headerRange.values);
+          let headers = headerRange.values[0]
+
+          let xlsData = [];
+          bodyRange.values.map((row, index) => {
+            let rowObj = {};
+            headers.map((headerRange, colNum) => {
+
+              // let temp = _.find(mapSettings, { 'header': header })
+              let temp = mapSettings.find(({ header }) => header == headerRange)
+              if (temp) {
+                rowObj[temp.valField] = row[colNum];
+              }
+            })
+            xlsData.push(rowObj);
+          })
+
+          let columnsToUpdate = [];
+
+
+          let indexer = 1;
+          tableDetails.fields.map(fields => {
+            if (fields.column_name == pk) {
+              fields.field_name = "id";
+              columnsToUpdate.push(fields);
+              selectedColumn.unshift({
+                selectedField: fields.column_name,
+                selectedFieldDatatype: fields.raw_data_type,
+                pkField: true
+              })
+
+            } else {
+              // if (_.find(selectedColumn, { 'selectedField': fields.column_name })) {
+              if (selectedColumn.find(({ selectedField }) => selectedField == fields.column_name)) {
+                fields.field_name = `value${indexer}`;
+                columnsToUpdate.push(fields);
+                indexer++;
+
+              }
             }
           })
-          xlsData.push(rowObj);
-        })
-        console.log(xlsData)
 
-        let columnsToUpdate = [];
+          let content = [];
 
+          xlsData.map(rec => {
+            let obj = {}
+            columnsToUpdate.map(field => {
+              obj[field.field_name] = rec[field.column_name]
+            })
+            content.push(obj)
+          })
 
-        let indexer = 1;
-        tableDetails.fields.map(fields => {
-          if (fields.column_name == pk) {
-            fields.field_name = "id";
-            columnsToUpdate.push(fields);
-            selectedColumn.unshift({
-              selectedField: fields.column_name,
-              selectedFieldDatatype: fields.raw_data_type,
-              pkField: true
+          let all_params = {
+            token: token,
+            content: content,
+            selectedColumn: selectedColumn,
+            table_name: currentTable,
+            comment: 'Update from XLS Plugin'
+
+          }
+          $.ajax({ url: "/excel/updateRecord", data: all_params })
+            .done(function (res) {
+              // app.showNotification("Successfully uploaded data into VAL", 'success')
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+              // var response = $.parseJSON(jqXHR.responseText);
+              // app.showNotification("Error calling VAL API", "Error message: " + response.message + ".    "
+              // + "For more info, check out: " + response.documentation_url);
+              // app.showNotification("Error.There was an error. Please try again")
+
             })
 
-          } else {
-            // if (_.find(selectedColumn, { 'selectedField': fields.column_name })) {
-            if (selectedColumn.find(({ selectedField }) => selectedField == fields.column_name)) {
-              fields.field_name = `value${indexer}`;
-              columnsToUpdate.push(fields);
-              indexer++;
-
-            }
-          }
         })
-
-        let content = [];
-
-        xlsData.map(rec => {
-          let obj = {}
-          columnsToUpdate.map(field => {
-            obj[field.field_name] = rec[field.column_name]
-          })
-          content.push(obj)
-        })
-
-        console.log(content)
-        let all_params = {
-          token: token,
-          content: content,
-          selectedColumn: selectedColumn,
-          table_name: currentTable,
-          comment: 'Update from XLS Plugin'
-
-        }
-        $.ajax({ url: "/excel/updateRecord", data: all_params })
-          .done(function (res) {
-            // app.showNotification("Successfully uploaded data into VAL", 'success')
-          })
-          .fail(function (jqXHR, textStatus, errorThrown) {
-            // var response = $.parseJSON(jqXHR.responseText);
-            // app.showNotification("Error calling VAL API", "Error message: " + response.message + ".    "
-            // + "For more info, check out: " + response.documentation_url);
-            // app.showNotification("Error.There was an error. Please try again")
-
-          })
-
-      })
-  })
+    })
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 function convertToExcelTable(rawContent) {
-  Excel.run(function (ctx) {
-    var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-    let headers = [];
-    rawContent.fields.map((field, index) => {
-      if (field.display && field.display != "Updated Date") {
-        headers.push(field.display)
-      }
-    })
-    let newRange = numToSSColumn(headers.length)
-    var table = sheet.tables.add(`A1:${newRange}1`, true);
-    console.log(rawContent)
-    table.name = rawContent.table_name;
-    let arrayHeader = [];
-    arrayHeader.push(headers)
-    table.getHeaderRowRange().values = arrayHeader;
+  try {
+    Excel.run(function (ctx) {
 
-    var tableRows = table.rows;
-    var items = rawContent.records;
-    items.map((val, index) => {
-      let temp = []
-      rawContent.fields.forEach((field) => {
+      var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+      var headers = rawContent.fields.filter((field) => {
+        if (field.display && field.display != "Updated Date") {
+          // return `${field.display}`;
+          return field
+        }
+      }).map(field => {
+        return `${field.display}`;
+      })
+      let newRange = numToSSColumn(headers.length)
+
+      var table = sheet.tables.add(`A1:${newRange}1`, true);
+
+      table.name = rawContent.table_name;
+      let arrayHeader = [];
+      arrayHeader.push(headers)
+
+      table.getHeaderRowRange().values = arrayHeader;
+
+      var tableRows = table.rows;
+      var items = rawContent.records;
+
+      items.map((val, index) => {
+        let temp = []
+        rawContent.fields.forEach((field) => {
+          if (field.column_name != "updated_date") {
+            temp.push(val[field.column_name])
+          }
+        })
+        const valuesToPush = convertFieldsToDisplay(temp)
+
+        tableRows.add(null, [valuesToPush])
+      })
+
+
+
+
+      const mapping = rawContent.fields.filter(field => {
         if (field.column_name != "updated_date") {
-          temp.push(val[field.column_name])
+          return field
         }
       })
-      const valuesToPush = convertFieldsToDisplay(temp)
-      tableRows.add(null, [valuesToPush])
-    })
+        .map(field => {
+          return ({ header: field.display, valField: field.column_name })
+        })
 
-    console.log("CHECK THIS")
-    let mapping = [];
-    rawContent.fields.map(field => {
-      if (field.column_name != "updated_date") {
-        mapping.push({ header: field.display, valField: field.column_name })
-      }
+      localStorage.setItem("mapSettings", JSON.stringify(mapping));
+      mapSettings = mapping;
+      // app.showNotification("Successfully imported data from VAL", 'success')
+      return ctx.sync();
     })
-
-
-    localStorage.setItem("mapSettings", JSON.stringify(mapping));
-    mapSettings = mapping;
-    // app.showNotification("Successfully imported data from VAL", 'success')
-    return ctx.sync();
-  })
-    .catch(function (error) {
-      // app.showNotification("Error: " + error);
-      console.log("Error: " + error);
-      if (error instanceof OfficeExtension.Error) {
-        console.log("Debug info: " + JSON.stringify(error.debugInfo));
-      }
-    })
+      .catch(function (error) {
+        // app.showNotification("Error: " + error);
+        console.log("Error: " + error);
+        if (error instanceof OfficeExtension.Error) {
+          console.log("Debug info: " + JSON.stringify(error.debugInfo));
+        }
+      })
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 function numToSSColumn(num) {
@@ -864,7 +900,7 @@ function convertFieldsToDisplay(values) {
     if (values && values.length > 0) {
       const newValues = values.map(item => {
         if (typeof item == "object") {
-          return newItem = item.reduce((accum, innerItem) => {
+          var newItem = item.reduce((accum, innerItem) => {
             if (accum == "") {
               return accum + `${innerItem}`
             }
@@ -872,6 +908,7 @@ function convertFieldsToDisplay(values) {
               return accum + `, ${innerItem}`
             }
           }, "")
+          return newItem
         } else {
           return item;
         }
@@ -879,7 +916,7 @@ function convertFieldsToDisplay(values) {
 
       return newValues;
     } else {
-      return []
+      return ""
     }
   } catch (err) {
     console.log(err)
@@ -915,7 +952,7 @@ function saveSettings(itemToSave) {
 }
 
 function verifyMapping(mappingArr) {
-  let pk = "general_id";
+  let pk = JSON.parse(localStorage.getItem("current_pk"))
   let pkMapped = false;
   let duplicates = false;
   let checkForDuplicate = [];
@@ -943,13 +980,14 @@ function verifyMapping(mappingArr) {
       }
     }
   })
+
   if (duplicateItem && duplicateItem.length > 0) {
     duplicates = true
   }
 
-  // console.log(duplicates, pkMapped)
+  console.log(duplicates, pkMapped)
 
-  if (pkMapped && !duplicates) {
+  if (pkMapped && duplicates == false) {
     //all Swee, proceed to save the mapping 
     console.log("ALL GUCCI")
     return true;

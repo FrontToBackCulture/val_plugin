@@ -85,7 +85,7 @@
 
     function sendStringToParentPage() {
         let mappingArr = []
-        _.map(excelHeaders, (head, index) => {
+        excelHeaders.map((head, index) => {
             var select = document.getElementById(`select_${head}`).value;
             mappingArr.push({ header: head, valField: select })
         })
@@ -97,7 +97,7 @@
     function removeMapping() {
         var valOptionList = document.getElementById("val-list");
         console.log(valOptionList)
-        _.map(excelHeaders, headers => {
+        excelHeaders.map(headers => {
             let select = document.getElementById(`select_${headers}`);
             select.value = { display: "Not Mapped", column_name: "None" };
         })
