@@ -1,3 +1,5 @@
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
+
 var token = "";
 var valObj = {};
 var selectionModel = {};
@@ -7,7 +9,7 @@ var dialog;
 
 Office.onReady(function (info) {
   $(document).ready(function () {
-    // OfficeExtension.config.extendedErrorLogging = true;
+    OfficeExtension.config.extendedErrorLogging = true;
     localStorage.clear("user_token");
     document.getElementById("login-button").onclick = login;
     document.getElementById("get-repo-info").onclick = getRepoInfo;
@@ -457,13 +459,13 @@ function getRepoInfo() {
             console.log("huehuehu here MATEY")
 
             let temp = currentTable.split("_")
-            let repo_id = temp[2]
+            let repoIdToFind = temp[2]
             let table_pk = ''
             getRepoTypeDetails()
               .then(function (res) {
                 // let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
 
-                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repo_id))
+                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
                 table_pk = currentRepo.repo_primary_key
 
                 localStorage.setItem("current_pk", JSON.stringify(table_pk));
@@ -496,33 +498,45 @@ function updateDisplayTable(pk_db, content, columns) {
     var sheet = ctx.workbook.worksheets.getActiveWorksheet();
     var tableToUpdate = sheet.tables.getItem(currentTable);
     let displayColumn = [];
+
+    console.log(500, mapSettings)
+    console.log(501, content.fields)
     columns.map(col => {
       // let temp = _.find(content.fields, { 'column_name': col })
       let temp = content.fields.find(({ column_name }) => column_name == col)
+      console.log(temp)
       if (temp) {
+        let foundDetails = mapSettings.find(({ valField }) => valField == col)
+        console.log(507, col)
         // let foundDetails = _.find(mapSettings, { 'valField': col })
-        let foundDetails = mapSettings.find({ valField })
+
         displayColumn.push(foundDetails.header)
       }
     })
+    console.log("HERE STILL OKAY LA", pk_db)
     sheet.tables.load("name");
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     var bodyRange = tableToUpdate.getDataBodyRange().load("values");
 
     // let pk = (_.find(content.fields, { 'column_name': pk_db })).display
 
-    // let findpk = content.fields.find(({ column_name }) => column_name == pk_db)
-    let findpk = content.fields.filter(item => item.column_name == pk_db)
+    let findpk = content.fields.find(({ column_name }) => column_name == pk_db)
+    // // let findpk = content.fields.filter(item => item.column_name == pk_db)
 
-    console.log("findpk", findpk)
+    console.log("findpk1", findpk)
     let pk = findpk.display
+    // let pk = JSON.parse(localStorage.getItem("current_pk"));
+    // console.log("findpk", pk)
     return ctx.sync()
       .then(function () {
         // let headers = _.flatten(headerRange.values);
         console.log("Check me please", headerRange.values)
-        let headers = headerRange.values.flat();
+        // let headers = headerRange.values.flat();
+        let headers = headerRange.values.reduce((acc, val) => acc.concat(val), [])
+        console.log("Check me", headers)
         let toUpdateValues = []
         let bodyContent = bodyRange.values;
+        console.log("Check me", content.records)
         content.records.map((val, key) => {
           let obj = {};
           columns.forEach((col, index) => {
@@ -533,6 +547,8 @@ function updateDisplayTable(pk_db, content, columns) {
           toUpdateValues.push(obj)
 
         })
+
+        console.log(toUpdateValues)
         let indexerObj = {}
 
         headers.map((val, key) => {
@@ -540,11 +556,14 @@ function updateDisplayTable(pk_db, content, columns) {
             indexerObj[val] = key
           }
         })
-
+        console.log(indexerObj)
         let newData = [];
 
         let pk_index = 0;
-        headers((column, col_index) => {
+        console.log("WHAT ABOYT ME")
+        console.log(headers)
+        headers.map((column, col_index) => {
+          console.log(column, pk)
           if (column == pk) {
             pk_index = col_index;
           }
@@ -564,6 +583,7 @@ function updateDisplayTable(pk_db, content, columns) {
           newData.push(row)
 
           //update bodyContent
+          console.log("WATASHI WA")
           displayColumn.map((col) => {
             if (col == pk) {
             } else {
@@ -575,6 +595,7 @@ function updateDisplayTable(pk_db, content, columns) {
             }
           })
         })
+        console.log("CHOOOOTTOOO")
         for (var i = 0; i < sheet.tables.items.length; i++) {
           if (sheet.tables.items[i].name == selectionModel.repo) {
             sheet.tables.items[i].delete();
@@ -583,19 +604,24 @@ function updateDisplayTable(pk_db, content, columns) {
         }
 
         let newRange = numToSSColumn(headers.length)
+        console.log(newRange)
         var table = sheet.tables.add(`A1:${newRange}1`, true);
+        console.log(table)
         table.name = content.table_name;
         let arrayHeader = [];
         arrayHeader.push(headers)
+        console.log(arrayHeader)
         table.getHeaderRowRange().values = arrayHeader;
 
 
 
-        // let tempTable = _.filter(objDataIndex, item => {
-        //   return item;
-        // })
+        let tempTable = [];
+        Object.keys(objDataIndex).forEach(function (key) {
+          console.log(objDataIndex[key])
+          tempTable.push(convertFieldsToDisplay(objDataIndex[key]))
+        });
 
-        let tempTable = objDataIndex.filter(item => item)
+        console.log(tempTable)
 
         table.rows.add(null, tempTable);
         if (Office.context.requirements.isSetSupported("ExcelApi", 1.2)) {
