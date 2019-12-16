@@ -651,7 +651,7 @@ function openDialog() {
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
           'https://localhost:9000/popup.html?',
-          { height: 45, width: 20, displayInIframe: true },
+          { height: 45, width: 25, displayInIframe: true },
           // TODO2: Add callback parameter.
           function (result) {
             dialog = result.value;
@@ -827,7 +827,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 function convertToExcelTable(rawContent) {
   try {
     Excel.run(function (ctx) {
-      console.log("rawContents",rawContent)
+      console.log("rawContents", rawContent)
       var sheet = ctx.workbook.worksheets.getActiveWorksheet();
       var headers = rawContent.fields.filter((field) => {
         if (field.display && field.display != "Updated Date") {

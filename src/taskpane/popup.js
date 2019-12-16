@@ -18,13 +18,9 @@
                 tableDetails = JSON.parse(localStorage.getItem("tableDetails"))
                 console.log(tableDetails)
                 setUIForMapping()
-                
+
             });
         });
-
-
-
-
 
     function setUIForMapping() {
         var mapList = document.getElementById("excel-list");
@@ -88,7 +84,7 @@
             var select = document.getElementById(`select_${head}`).value;
             mappingArr.push({ header: head, valField: select })
         })
-
+        console.log(mappingArr)
         mappingArr = JSON.stringify(mappingArr)
         Office.context.ui.messageParent(mappingArr);
     }
@@ -98,8 +94,20 @@
         console.log(valOptionList)
         excelHeaders.map(headers => {
             let select = document.getElementById(`select_${headers}`);
-            select.value = { display: "Not Mapped", column_name: "None" };
+            // select.value = { display: "Not Mapped", column_name: "None" };
+            select.value = "None"
         })
+    }
+
+    function mapAll() {
+        excelHeaders.map(headers => {
+            let optionSetter = _.find(tableDetails.fields, { 'display': headers })
+            let select = document.getElementById(`select_${headers}`);
+            if (optionSetter) {
+                select.value = optionSetter.column_name
+            }
+        })
+
     }
 
 
