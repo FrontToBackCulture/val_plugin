@@ -44,6 +44,7 @@ function login() {
   try {
     let user = document.getElementById("userName").value;
     let pass = document.getElementById("userPass").value;
+    console.log(user, pass)
     let requestObj = { url: "/excel/login", data: { email: user, password: pass } };
     $.ajax(requestObj)
       .done(function (res) {
@@ -518,6 +519,7 @@ function updateDisplayTable(pk_db, content, columns) {
     return ctx.sync()
       .then(function () {
         // let headers = _.flatten(headerRange.values);
+        console.log("Check me please", headerRange.values)
         let headers = headerRange.values.flat();
         let toUpdateValues = []
         let bodyContent = bodyRange.values;
@@ -639,8 +641,13 @@ function openDialog() {
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     return ctx.sync()
       .then(function () {
+        console.log("headerRange values =>", headerRange.values)
+        console.log(645, typeof headerRange.values)
         // let excelHeaders = _.flatten(headerRange.values)
-        let excelHeaders = headerRange.values.flat()
+        // let excelHeaders = headerRange.values.flat()
+        // let excelHeaders = headerRange.values
+        let excelHeaders = headerRange.values.reduce((acc, val) => acc.concat(val), [])
+        console.log(650, excelHeaders)
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
           'https://localhost:9000/popup.html?',
@@ -820,7 +827,7 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
 function convertToExcelTable(rawContent) {
   try {
     Excel.run(function (ctx) {
-
+      console.log("rawContents",rawContent)
       var sheet = ctx.workbook.worksheets.getActiveWorksheet();
       var headers = rawContent.fields.filter((field) => {
         if (field.display && field.display != "Updated Date") {
@@ -837,7 +844,7 @@ function convertToExcelTable(rawContent) {
       table.name = rawContent.table_name;
       let arrayHeader = [];
       arrayHeader.push(headers)
-
+      console.log(840, arrayHeader)
       table.getHeaderRowRange().values = arrayHeader;
 
       var tableRows = table.rows;

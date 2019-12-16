@@ -30,14 +30,16 @@ const path = require('path');
 module.exports = {
 	devtool: "inline-source-map",
 	entry: {
-		main: [
+		taskpane: [
 			'@babel/polyfill',
 			'./src/taskpane/taskpane.js',
-		]
+			// './src/taskpane/popup.js'
+		],
+		popup: ['@babel/polyfill','./src/taskpane/popup.js']
 	},
 	mode: 'development',
 	output: {
-		filename: 'taskpane.bundle.js',
+		filename: '[name].bundle.js',
 		path: path.resolve(__dirname + '/build', "")
 	},
 	module: {

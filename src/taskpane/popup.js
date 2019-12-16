@@ -18,8 +18,7 @@
                 tableDetails = JSON.parse(localStorage.getItem("tableDetails"))
                 console.log(tableDetails)
                 setUIForMapping()
-                // TODO1: Assign handler to the OK button.
-
+                
             });
         });
 
