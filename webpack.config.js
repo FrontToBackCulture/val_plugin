@@ -33,9 +33,8 @@ module.exports = {
 		taskpane: [
 			'@babel/polyfill',
 			'./src/taskpane/taskpane.js',
-			// './src/taskpane/popup.js'
 		],
-		popup: ['@babel/polyfill','./src/taskpane/popup.js']
+		popup: ['@babel/polyfill', './src/taskpane/popup.js'],
 	},
 	mode: 'development',
 	output: {
@@ -51,16 +50,16 @@ module.exports = {
 				options: {
 					presets: [
 						["@babel/preset-env",
-						 {
-							 targets: {
-								"ie": "11"
-							 },
-							 useBuiltIns: "usage"
-						}]
+							{
+								targets: {
+									"ie": "11"
+								},
+								useBuiltIns: "usage"
+							}]
 					]
 				}
 			}
-			
+
 		}]
 	},
 };

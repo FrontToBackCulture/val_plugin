@@ -14,13 +14,15 @@
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.2.1.min.js"></script>
     <!-- <script type="text/javascript" src="popup.js"></script> -->
     <script type="text/javascript" src="/build/popup.bundle.js"></script>
-    <link rel="stylesheet"
+    <!-- <link rel="stylesheet"
         href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.min.css" />
     <link rel="stylesheet"
-        href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.components.min.css" />
-    <script src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js"></script>
-
-
+        href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.components.min.css" /> -->
+    <!-- <script src="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js"></script> -->
+    <script src="/node_modules/office-ui-fabric-js/dist/js/fabric.min.js"></script>
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.min.css" />
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.components.min.css" />
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
     <style>
         table {
             border-collapse: collapse;
@@ -36,10 +38,16 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        val-item {
+            padding: 9px 28px 3px;
+            position: relative;
+            display: block;
+        }
     </style>
 </head>
 
-<body style="display:flex;flex-direction:column;" >
+<body style="display:flex;flex-direction:column;">
     <div class="padding">
         <p class="headerText">Add or remove fields mapping</p>
     </div>
@@ -56,10 +64,10 @@
                 <span class="ms-Label">Map All</span>
             </label>
         </div> -->
-        <div class="padding headerText" >
+        <div class="padding headerText">
             <button id="removeMapping" class="ms-Button">Remove mapping</button>
         </div>
-        <div class="padding headerText" >
+        <div class="padding headerText">
             <button id="mapAll" class="ms-Button">Map All</button>
         </div>
     </div>

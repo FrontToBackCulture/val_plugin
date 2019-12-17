@@ -1,4 +1,4 @@
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
+const moment = require("moment");
 
 var token = "";
 var valObj = {};
@@ -30,8 +30,8 @@ Office.onReady(function (info) {
     document
       .getElementById("repo_selection")
       .addEventListener("change", repoSelectionChange);
-
     checkLoginStatus();
+    handleNotification()
   })
 });
 
@@ -46,16 +46,12 @@ function login() {
   try {
     let user = document.getElementById("userName").value;
     let pass = document.getElementById("userPass").value;
-    console.log(user, pass)
     let requestObj = { url: "/excel/login", data: { email: user, password: pass } };
     $.ajax(requestObj)
       .done(function (res) {
-        // if (res && res.api_token && res.api_token != "") {
         if (res && res.user) {
           token = res.user;
-          console.log(token);
           localStorage.setItem("user_token", token);
-          // loggedIn = true;
           checkLoginStatus();
         }
       })
@@ -629,7 +625,7 @@ function updateDisplayTable(pk_db, content, columns) {
           sheet.getUsedRange().format.autofitRows();
         }
         sheet.activate();
-        // app.showNotification("Successfully imported data from VAL", 'success')
+        handleNotification("Successfully imported data from VAL", 'success')
         return ctx.sync();
       })
   })
@@ -689,6 +685,7 @@ function openDialog() {
 }
 
 function processMessage(arg) {
+
   let mappingArr = JSON.parse(arg.message)
   console.log(mappingArr)
   dialog.close();
@@ -700,7 +697,8 @@ function processMessage(arg) {
       saveSettings(mappingArr)
     } else {
       //your Pk field is not mapped or there are duplicates in your mapping. 
-      // app.showNotification("Error! Pk field is not mapped or there are duplicates in your mapping")
+      handleNotification("ID field is not mapped or there are duplicates in your mapping.")
+
     }
   }
 }
@@ -833,14 +831,14 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
           }
           $.ajax({ url: "/excel/updateRecord", data: all_params })
             .done(function (res) {
-              // app.showNotification("Successfully uploaded data into VAL", 'success')
+              handleNotification("Successfully uploaded data into VAL", 'success');
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
               // var response = $.parseJSON(jqXHR.responseText);
               // app.showNotification("Error calling VAL API", "Error message: " + response.message + ".    "
               // + "For more info, check out: " + response.documentation_url);
               // app.showNotification("Error.There was an error. Please try again")
-
+              handleNotification("Error.There was an error. Please try again")
             })
 
         })
@@ -902,7 +900,13 @@ function convertToExcelTable(rawContent) {
 
       localStorage.setItem("mapSettings", JSON.stringify(mapping));
       mapSettings = mapping;
-      // app.showNotification("Successfully imported data from VAL", 'success')
+
+      if (Office.context.requirements.isSetSupported("ExcelApi", 1.2)) {
+        sheet.getUsedRange().format.autofitColumns();
+        sheet.getUsedRange().format.autofitRows();
+      }
+      sheet.activate();
+      handleNotification("Successfully imported data from VAL", 'success')
       return ctx.sync();
     })
       .catch(function (error) {
@@ -932,7 +936,7 @@ function convertFieldsToDisplay(values) {
   try {
     if (values && values.length > 0) {
       const newValues = values.map(item => {
-        if (typeof item == "object") {
+        if (item && typeof item == "object") {
           var newItem = item.reduce((accum, innerItem) => {
             if (accum == "") {
               return accum + `${innerItem}`
@@ -943,7 +947,15 @@ function convertFieldsToDisplay(values) {
           }, "")
           return newItem
         } else {
-          return item;
+          if (item) {
+            if (checkIfDate(item)) {
+              return checkIfDate(item)
+            } else {
+              return item;
+            }
+          } else {
+            return item;
+          }
         }
       })
 
@@ -1028,6 +1040,71 @@ function verifyMapping(mappingArr) {
     //no go got error
     console.log("NO BUENO")
     return false;
+  }
+
+}
+
+function handleNotification(message, type) {
+  if (message && message != "") {
+    if (type == "success") {
+      document.getElementById("errorNotification").style.display = "none";
+      document.getElementById("successNotification").style.display = "block";
+      document.getElementById("successNotificatioMsg").innerHTML = message
+      setTimeout(() => {
+        document.getElementById("successNotification").style.display = "none";
+        console.log("Clear me please, success")
+      }, 3000)
+    }
+    else {
+      document.getElementById("successNotification").style.display = "none";
+      document.getElementById("errorNotification").style.display = "block";
+      document.getElementById("errorNotificationMsg").innerHTML = message;
+      setTimeout(() => {
+        document.getElementById("errorNotification").style.display = "none";
+        console.log("Clear me please,error")
+      }, 5000)
+    }
+  } else {
+    document.getElementById("errorNotification").style.display = "none";
+    document.getElementById("successNotification").style.display = "none";
+  }
+}
+
+function checkIfDate(value) {
+  if (value && (Number.isInteger(value) || (Number(value) === value && value % 1 !== 0 && value % 1 !== 0))) {
+    return false;
+  } else {
+    var dataToCheck = new Date(value);
+    if (
+      dataToCheck &&
+      typeof dataToCheck === "string" &&
+      dataToCheck.toLowerCase() &&
+      dataToCheck.toLowerCase() === "invalid date"
+    ) {
+      return false;
+    }
+    else {
+      dataToCheck = moment(dataToCheck).format(
+        "MMM DD, YYYY"
+      );
+      if (
+        dataToCheck &&
+        typeof dataToCheck === "string" &&
+        dataToCheck.toLowerCase() &&
+        dataToCheck.toLowerCase() === "invalid date"
+      ) {
+        return false;
+      } else {
+        if
+          (dataToCheck &&
+          Number.isInteger(dataToCheck)) {
+          return false;
+        } else {
+          console.log("ITS A DATE", dataToCheck)
+          return dataToCheck
+        }
+      }
+    }
   }
 
 }

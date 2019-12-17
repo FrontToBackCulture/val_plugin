@@ -32,7 +32,7 @@
         })
 
         _.forEach(excelHeaders, header => {
-            valOptionList.innerHTML += `<li class="ms-ListItem" tabindex="0">  <select id="select_${header}" class="headerText"></select> </li>`
+            valOptionList.innerHTML += `<li class="val-item" tabindex="0">  <select id="select_${header}" class="headerText"></select> </li>`
         })
 
         // let row = mapTable.insertRow(0);

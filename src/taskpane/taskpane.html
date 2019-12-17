@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
@@ -36,27 +37,41 @@
             </span>
         </div>
         <div id="notification-container"></div>
+
+        <div id="successNotification" class="ms-MessageBar ms-MessageBar--success">
+            <div class="ms-MessageBar-content">
+                <div class="ms-MessageBar-icon">
+                    <i class="ms-Icon ms-Icon--Completed"></i>
+                </div>
+                <div id="successNotificatioMsg" class="ms-MessageBar-text">
+                    <br />
+                </div>
+            </div>
+        </div>
+
+        <div id="errorNotification" class="ms-MessageBar ms-MessageBar--error">
+            <div class="ms-MessageBar-content">
+              <div class="ms-MessageBar-icon">
+                <i class="ms-Icon ms-Icon--ErrorBadge"></i>
+              </div>
+              <div id="errorNotificationMsg" class="ms-MessageBar-text">              
+              </div>
+            </div>
+          </div>
         <!-- LOGIN -->
         <div id="loginContainer" class="container">
             <div class="login-box">
                 <div class="padding" style:mar>
                     <div class="ms-TextField ms-TextField">
                         <label class="ms-Label">Username: </label>
-                        <input class="ms-TextField-field"
-                               type="text"
-                               value="hafiz@fronttobackculture.com.sg"
-                               placeholder=""
-                               id="userName" />
+                        <input class="ms-TextField-field" type="text" value="hafiz@fronttobackculture.com.sg"
+                            placeholder="" id="userName" />
                     </div>
                 </div>
                 <div class="padding">
                     <div class="ms-TextField ms-TextField">
                         <label class="ms-Label">Password: </label>
-                        <input class="ms-TextField-field"
-                               type="password"
-                               value="123123"
-                               placeholder=""
-                               id="userPass" />
+                        <input class="ms-TextField-field" type="password" value="123123" placeholder="" id="userPass" />
                     </div>
                 </div>
 
@@ -67,6 +82,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <div id="selectionContainer" class='container'>
             <div class="padding">
@@ -161,4 +178,5 @@
 <script src="/node_modules/lodash/lodash.min.js"></script>
 <script type="text/javascript" src="/build/taskpane.bundle.js"></script>
 <!-- <script type="text/javascript" src="./taskpane.js"></script> -->
+
 </html>
