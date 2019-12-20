@@ -6,13 +6,15 @@ var selectionModel = {};
 var currentTableInfo = {};
 var mapSettings = [];
 var dialog;
+var confirmationDialog;
 
 Office.onReady(function (info) {
   $(document).ready(function () {
     OfficeExtension.config.extendedErrorLogging = true;
     localStorage.clear("user_token");
     document.getElementById("login-button").onclick = login;
-    document.getElementById("get-repo-info").onclick = getRepoInfo;
+    // document.getElementById("get-repo-info").onclick = getRepoInfo;
+    document.getElementById("get-repo-info").onclick = function () { getRepoInfo({ overwrite: false }) }
     document.getElementById("update-info").onclick = syncToVAL;
     document.getElementById("open-dialog").onclick = dialogVerify;
     document.getElementById("backButton").onclick = previousPage;
@@ -63,23 +65,14 @@ function login() {
 
 function checkLoginStatus() {
   try {
-    console.log("checking login status");
     token = localStorage.getItem("user_token", token);
-    console.log("HI", token);
     if (token) {
-      // $('#loginContainer').hide();
-      // $('#selectionContainer').show();
-      // $('#actionContainer').hide();
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("selectionContainer").style.display = "block";
       document.getElementById("actionContainer").style.display = "none";
       getRepoTypeDetails();
       getUserProjects();
     } else {
-      // $('#loginContainer').show();
-      // $('#selectionContainer').hide();
-      // $('#actionContainer').hide();
-
       document.getElementById("loginContainer").style.display = "block";
       document.getElementById("selectionContainer").style.display = "none";
       document.getElementById("actionContainer").style.display = "none";
@@ -92,14 +85,10 @@ function checkLoginStatus() {
 function getRepoTypeDetails() {
   return new Promise(function (resolve, reject) {
     if (token) {
-      console.log('check token', token)
       $.ajax({ url: "/excel/getRepoTypes", data: { api_token: token } })
         .done(function (repoTypes) {
-          console.log("herE");
           valObj.allRepo = repoTypes;
-          console.log(valObj);
           setOptionsForDropDown("repoTypeDropdown");
-
           resolve(repoTypes);
         })
         .fail(function (jqXHR, textStatus, errorThrown) { });
@@ -114,7 +103,6 @@ function getUserProjects() {
     if (token) {
       $.ajax({ url: "/excel/getUserProjects", data: { api_token: token } })
         .done(function (projects) {
-          console.log(projects);
           valObj.projects = projects;
           setOptionsForDropDown("projectDropdown");
           resolve(projects);
@@ -134,8 +122,6 @@ function getUserPhases() {
       $.ajax({ url: "/excel/getUserPhases", data: { api_token: token } })
         .done(function (phases) {
           valObj.phases = phases;
-          console.log(phases)
-
           setOptionsForDropDown('phaseDropdown');
           resolve(phases);
         })
@@ -165,17 +151,10 @@ function setOptionsForDropDown(type) {
 
         break;
       case "projectDropdown":
-        console.log(2);
         theDropDown = document.getElementById(type);
-        theDropDown.querySelector(
-          "select"
-          // ).innerHTML = `<option value="0">Select a Project </option>`;
-        ).innerHTML = '<option value="0">Select a Project </option>';
+        theDropDown.querySelector("select").innerHTML = '<option value="0">Select a Project </option>';
 
         valObj.projects.map(function (project) {
-          // theDropDown.querySelector("select").innerHTML += `<option value="${
-          //   project.project_id
-          // }">${project.project_name}</option>`;
           theDropDown.querySelector("select").innerHTML += "<option value = " + project.project_id + ">" + project.project_name + "</option>";
         });
 
@@ -185,14 +164,8 @@ function setOptionsForDropDown(type) {
         theDropDown.querySelector(
           "select"
         ).innerHTML = '<option value="0">Select a Phase </option>';
-        // _.map(valObj.phases, phase => {
-        //     theDropDown.querySelector('select').innerHTML += `<option value="${phase.phase_id}">${phase.phase_name}</option>`
-        // })w2
 
         valObj.phases.map(function (phase) {
-          // theDropDown.querySelector("select").innerHTML += `<option value="${
-          //   phase.phase_id
-          // }">${phase.phase_name}</option>`;
           theDropDown.querySelector("select").innerHTML += "<option value = " + phase.phase_id + ">" + phase.phase_name + "</option>";
         });
         break;
@@ -201,13 +174,8 @@ function setOptionsForDropDown(type) {
         theDropDown.querySelector(
           "select"
         ).innerHTML = '<option value="0">Select a Repository </option>';
-        // _.map(valObj.repoTableSelection, repo => {
-        //     theDropDown.querySelector('select').innerHTML += `<option value="${repo.tablename}">${repo.name}</option>`
-        // })
+
         valObj.repoTableSelection.map(function (repo) {
-          // theDropDown.querySelector("select").innerHTML += `<option value="${
-          //   repo.tablename
-          // }">${repo.name}</option>`;
           theDropDown.querySelector("select").innerHTML += "<option value = " + repo.tablename + ">" + repo.name + "</option>";
         });
         break;
@@ -246,29 +214,23 @@ function handleReinitialization(type) {
 
 function repoTypeSelectionChange() {
   var optionSelected = $('#repotype_selection option:selected').val();
-  console.log(optionSelected);
   handleSelectionChanges("repo_type", optionSelected);
 }
 
 function projectSelectionChange() {
   var optionSelected = $('#project_selection option:selected').val();
-  console.log(optionSelected);
   handleSelectionChanges("project", optionSelected);
 }
 function phaseSelectionChange() {
   var optionSelected = $('#phase_selection option:selected').val();
-  console.log(optionSelected);
   handleSelectionChanges("phase", optionSelected);
 }
 function repoSelectionChange() {
   var optionSelected = $('#repo_selection option:selected').val();
-  console.log(optionSelected);
   handleSelectionChanges("repo", optionSelected);
 }
 
 function handleSelectionChanges(type, valueToStore) {
-  console.log("handling selection");
-  console.log(type, valueToStore);
   switch (type) {
     case "repo_type":
       selectionModel.repoType = valueToStore;
@@ -304,11 +266,9 @@ function getTableDetails(repo_id) {
       data: { api_token: token, repo_id: repo_id }
     })
       .done(function (res) {
-        console.log(res);
         // let toReturn = _.find(res.records, { tablename: selectionModel.repo });
         let toReturn = res.records.find(({ tablename }) => tablename == selectionModel.repo);
         currentTableInfo = res.records;
-        console.log(currentTableInfo);
         valObj.repoTableSelection = currentTableInfo;
         setOptionsForDropDown("repoDropdown");
         resolve(toReturn);
@@ -366,7 +326,6 @@ function getSettings() {
               if (workbookDetails == res[0].name) {
                 localStorage.setItem("mapSettings", JSON.stringify(res[0].settings));
                 mapSettings = res[0].settings;
-                console.log(mapSettings)
               }
             } else {
               localStorage.removeItem(mapSettings)
@@ -376,117 +335,152 @@ function getSettings() {
   })
 };
 
-function getRepoInfo() {
+function getRepoInfo(obj) {
   // Run a batch operation against the Excel object model
-  let fullData = true;
-  Excel.run(function (ctx) {
-    $('#notification-message').hide();
-    let requestObj = {};
-    let columns = [];
-    var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-    let table = selectionModel.repo
-    sheet.tables.load("name");
-    return ctx.sync().then(function () {
+  try {
+    let fullData = true;
+    Excel.run(function (ctx) {
+      $('#notification-message').hide();
+      let requestObj = {};
+      let columns = [];
+      var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+      let table = selectionModel.repo;
+      let existingData = { records: [] };
+      var checkForFieldDifference = [];
+      var checkForRowDifference = [];
+      sheet.tables.load("name");
+      return ctx.sync().then(function () {
 
-      for (var i = 0; i < sheet.tables.items.length; i++) {
-        if (sheet.tables.items[i].name == table) {
-          fullData = false;
-          break;
-        }
-      }
-      console.log("fullData", fullData)
-      if (fullData) {
-        console.log(token)
-        let options = {
-          api_token: token,
-          table_name: table,
-          options: {
-            display: true
+        for (var i = 0; i < sheet.tables.items.length; i++) {
+          if (sheet.tables.items[i].name == table) {
+            fullData = false;
+            break;
           }
         }
 
-        requestObj = { url: "/excel/pullFullData", data: options }
-      } else {
-
-        columns = mapSettings.map(item => {
-          if (item.valField != "None") {
-            return item.valField
+        console.log("fullData", fullData)
+        if (fullData) {
+          let options = {
+            api_token: token,
+            table_name: table,
+            options: {
+              display: true
+            }
           }
-        })
-        // const columnsMapped = columns
 
-        //add checker to ensure no blank column
-        let options = {
-          api_token: token,
-          table_name: table,
-          options: {
-            display: true,
+          requestObj = { url: "/excel/pullFullData", data: options }
+        } else {
+          existingData = JSON.parse(localStorage.getItem("tableDetails"));
+          columns = mapSettings.map(item => {
+            if (item.valField != "None") {
+              return item.valField
+            }
+          })
+          // const columnsMapped = columns
+
+          //add checker to ensure no blank column
+          let options = {
+            api_token: token,
+            table_name: table,
+            options: {
+              display: true,
+            }
           }
+
+          requestObj = { url: "/excel/pullPartialData", data: options }
         }
+        $.ajax(requestObj)
+          .done(function (data) {
+            let records = JSON.parse(data);
+            var currentTable = records.table_name;
+            localStorage.setItem("currentTable", currentTable)
+            localStorage.setItem("tableDetails", JSON.stringify(records));
 
-        requestObj = { url: "/excel/pullPartialData", data: options }
-      }
-      $.ajax(requestObj)
-        .done(function (data) {
-          let records = JSON.parse(data);
-          console.log(records)
-          var currentTable = records.table_name;
-          localStorage.setItem("currentTable", currentTable)
-          localStorage.setItem("tableDetails", JSON.stringify(records));
+            if (fullData) {
+              for (var i = 0; i < sheet.tables.items.length; i++) {
+                if (sheet.tables.items[i].name == selectionModel.repo) {
+                  sheet.tables.items[i].delete();
+                  break;
+                }
+              }
+              getRepoTypeDetails()
+                .then(function (res) {
+                  let temp = currentTable.split("_")
+                  let repoIdToFind = temp[2]
 
+                  let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
 
-          console.log("CHECK FULL DATA", fullData)
-          if (fullData) {
+                  var table_pk = currentRepo.repo_primary_key
 
-            getRepoTypeDetails()
-              .then(function (res) {
-                let temp = currentTable.split("_")
-                let repoIdToFind = temp[2]
+                  localStorage.setItem("current_pk", JSON.stringify(table_pk));
+                  convertToExcelTable(records);
+                })
 
-                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
+            } else {
+              let pullFullData = true;
+              for (var i = 0; i < sheet.tables.items.length; i++) {
+                if (sheet.tables.items[i].name == selectionModel.repo) {
+                  pullFullData = false;
+                  break;
+                }
+              }
 
-                var table_pk = currentRepo.repo_primary_key
+              if (!obj.overwrite && !pullFullData) {
+                checkForFieldDifference = fieldValidation(records.fields, mapSettings)
+                checkForRowDifference = rowValidation(records.records, existingData.records)
+              }
 
-                localStorage.setItem("current_pk", JSON.stringify(table_pk));
-                convertToExcelTable(records);
-              })
+              let temp = currentTable.split("_")
+              let repoIdToFind = temp[2]
+              let table_pk = ''
+              getRepoTypeDetails()
+                .then(function (res) {
+                  let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
+                  table_pk = currentRepo.repo_primary_key
 
-          } else {
-            console.log("huehuehu here MATEY")
+                  localStorage.setItem("current_pk", JSON.stringify(table_pk));
+                  if (checkForFieldDifference && checkForFieldDifference.length > 0) {
+                    //Dialog for field difference
+                    localStorage.setItem("confirmationDialog", JSON.stringify(checkForFieldDifference))
+                    openConfirmationDialog()
+                  }
+                  else if (checkForRowDifference && checkForRowDifference.length > 0) {
+                    //Dialog for row difference
+                    openConfirmationDialog()
+                  } else {
+                    if (!obj.overwrite && !pullFullData) {
+                      updateDisplayTable(table_pk, records, columns);
+                    } else {
+                      convertToExcelTable(records)
 
-            let temp = currentTable.split("_")
-            let repoIdToFind = temp[2]
-            let table_pk = ''
-            getRepoTypeDetails()
-              .then(function (res) {
-                // let currentRepo = _.find(res, { "repo_id": parseInt(repo_id) })
+                    }
+                  }
+                })
 
-                let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
-                table_pk = currentRepo.repo_primary_key
+            }
 
-                localStorage.setItem("current_pk", JSON.stringify(table_pk));
-                updateDisplayTable(table_pk, records, columns);
-              })
+          })
+          .fail(function (jqXHR, textStatus, errorThrown) {
 
+            console.log(textStatus)
+            console.log(errorThrown)
+          });
+      })
+        .then(ctx.sync)
+        .catch(function (error) {
+          // Always be sure to catch any accumulated errors that bubble up from the Excel.run execution
+          // app.showNotification("Error: " + error);
+          console.log("Error: " + error);
+          if (error instanceof OfficeExtension.Error) {
+            console.log("Debug info: " + JSON.stringify(error.debugInfo));
           }
-
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-
-          console.log(textStatus)
-          console.log(errorThrown)
         });
     })
-      .then(ctx.sync)
-      .catch(function (error) {
-        // Always be sure to catch any accumulated errors that bubble up from the Excel.run execution
-        // app.showNotification("Error: " + error);
-        console.log("Error: " + error);
-        if (error instanceof OfficeExtension.Error) {
-          console.log("Debug info: " + JSON.stringify(error.debugInfo));
-        }
-      });
-  })
+
+  }
+  catch (err) {
+    console.log(err)
+  }
 }
 function updateDisplayTable(pk_db, content, columns) {
   Excel.run(function (ctx) {
@@ -495,26 +489,20 @@ function updateDisplayTable(pk_db, content, columns) {
     var tableToUpdate = sheet.tables.getItem(currentTable);
     let displayColumn = [];
 
-    console.log(500, mapSettings)
-    console.log(501, content.fields)
     columns.map(col => {
-      // let temp = _.find(content.fields, { 'column_name': col })
+
       let temp = content.fields.find(({ column_name }) => column_name == col)
-      console.log(temp)
       if (temp) {
         let foundDetails = mapSettings.find(({ valField }) => valField == col)
-        console.log(507, col)
-        // let foundDetails = _.find(mapSettings, { 'valField': col })
-
         displayColumn.push(foundDetails.header)
       }
     })
-    console.log("HERE STILL OKAY LA", pk_db)
+
     sheet.tables.load("name");
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     var bodyRange = tableToUpdate.getDataBodyRange().load("values");
 
-    // let pk = (_.find(content.fields, { 'column_name': pk_db })).display
+
 
     let findpk = content.fields.find(({ column_name }) => column_name == pk_db)
     // // let findpk = content.fields.filter(item => item.column_name == pk_db)
@@ -532,7 +520,6 @@ function updateDisplayTable(pk_db, content, columns) {
         console.log("Check me", headers)
         let toUpdateValues = []
         let bodyContent = bodyRange.values;
-        console.log("Check me", content.records)
         content.records.map((val, key) => {
           let obj = {};
           columns.forEach((col, index) => {
@@ -544,7 +531,7 @@ function updateDisplayTable(pk_db, content, columns) {
 
         })
 
-        console.log(toUpdateValues)
+
         let indexerObj = {}
 
         headers.map((val, key) => {
@@ -552,14 +539,10 @@ function updateDisplayTable(pk_db, content, columns) {
             indexerObj[val] = key
           }
         })
-        console.log(indexerObj)
         let newData = [];
 
         let pk_index = 0;
-        console.log("WHAT ABOYT ME")
-        console.log(headers)
         headers.map((column, col_index) => {
-          console.log(column, pk)
           if (column == pk) {
             pk_index = col_index;
           }
@@ -569,8 +552,6 @@ function updateDisplayTable(pk_db, content, columns) {
           objDataIndex[row[pk_index]] = row;
         })
 
-        console.log(objDataIndex)
-        console.log(toUpdateValues)
         toUpdateValues.map((row) => {
           let newRow = [];
           headers.map((column) => {
@@ -591,7 +572,7 @@ function updateDisplayTable(pk_db, content, columns) {
             }
           })
         })
-        console.log("CHOOOOTTOOO")
+
         for (var i = 0; i < sheet.tables.items.length; i++) {
           if (sheet.tables.items[i].name == selectionModel.repo) {
             sheet.tables.items[i].delete();
@@ -600,24 +581,15 @@ function updateDisplayTable(pk_db, content, columns) {
         }
 
         let newRange = numToSSColumn(headers.length)
-        console.log(newRange)
         var table = sheet.tables.add(`A1:${newRange}1`, true);
-        console.log(table)
         table.name = content.table_name;
-        let arrayHeader = [];
-        arrayHeader.push(headers)
-        console.log(arrayHeader)
+        let arrayHeader = [headers];
         table.getHeaderRowRange().values = arrayHeader;
-
-
 
         let tempTable = [];
         Object.keys(objDataIndex).forEach(function (key) {
-          console.log(objDataIndex[key])
           tempTable.push(convertFieldsToDisplay(objDataIndex[key]))
         });
-
-        console.log(tempTable)
 
         table.rows.add(null, tempTable);
         if (Office.context.requirements.isSetSupported("ExcelApi", 1.2)) {
@@ -663,13 +635,9 @@ function openDialog() {
     var headerRange = tableToUpdate.getHeaderRowRange().load("values");
     return ctx.sync()
       .then(function () {
-        console.log("headerRange values =>", headerRange.values)
-        console.log(645, typeof headerRange.values)
-        // let excelHeaders = _.flatten(headerRange.values)
-        // let excelHeaders = headerRange.values.flat()
-        // let excelHeaders = headerRange.values
+
         let excelHeaders = headerRange.values.reduce((acc, val) => acc.concat(val), [])
-        console.log(650, excelHeaders)
+
         localStorage.setItem("headerSet", JSON.stringify(excelHeaders));
         Office.context.ui.displayDialogAsync(
           'https://localhost:9000/popup.html?',
@@ -684,10 +652,42 @@ function openDialog() {
   })
 }
 
-function processMessage(arg) {
+function openConfirmationDialog() {
+  Office.context.ui.displayDialogAsync(
+    'https://localhost:9000/confirmation.html?',
+    { height: 30, width: 25, displayInIframe: true },
+    function (result) {
+      console.log(result)
+      confirmationDialog = result.value;
+      confirmationDialog.addEventHandler(Microsoft.Office.WebExtension.EventType.DialogMessageReceived, processConfirmationMessage);
+    }
+  );
 
+}
+
+function processConfirmationMessage(arg) {
+  Excel.run(function (ctx) {
+    var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+    sheet.tables.load("name");
+    const response = JSON.parse(arg.message);
+    return ctx.sync()
+      .then(function () {
+        if (response.type == "yes") {
+          for (var i = 0; i < sheet.tables.items.length; i++) {
+            if (sheet.tables.items[i].name == selectionModel.repo) {
+              sheet.tables.items[i].delete();
+              break;
+            }
+          }
+          getRepoInfo({ overwrite: true });
+        }
+        confirmationDialog.close();
+      })
+  })
+}
+
+function processMessage(arg) {
   let mappingArr = JSON.parse(arg.message)
-  console.log(mappingArr)
   dialog.close();
   if (mappingArr && mappingArr.length > 0) {
     let verifier = verifyMapping(mappingArr)
@@ -723,8 +723,6 @@ function syncToVAL() {
           .then(function (details) {
             let selectedColumnObj = []
             let selectedCol = []
-            console.log(mapSettings)
-            console.log("MAP SETTINGS???", mapSettings)
             mapSettings.map(item => {
               if (item.valField && item.valField != "None") {
                 if (item.valField != table_pk) {
@@ -810,7 +808,6 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
               }
             }
           })
-
           let content = [];
 
           xlsData.map(rec => {
@@ -834,10 +831,6 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
               handleNotification("Successfully uploaded data into VAL", 'success');
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
-              // var response = $.parseJSON(jqXHR.responseText);
-              // app.showNotification("Error calling VAL API", "Error message: " + response.message + ".    "
-              // + "For more info, check out: " + response.documentation_url);
-              // app.showNotification("Error.There was an error. Please try again")
               handleNotification("Error.There was an error. Please try again")
             })
 
@@ -1100,11 +1093,65 @@ function checkIfDate(value) {
           Number.isInteger(dataToCheck)) {
           return false;
         } else {
-          console.log("ITS A DATE", dataToCheck)
           return dataToCheck
         }
       }
     }
   }
+};
 
+function fieldValidation(valFields, excelFields) {
+  try {
+    console.log("VALIDATE MEEE FIELDS")
+    const pk = JSON.parse(localStorage.getItem("current_pk"))
+    //first we remove excess fields from valFields(Updated_date, PK Field) && excelFields(PK field)
+    const systemFields = valFields.filter(tableField => {
+      if (tableField.column_name != "updated_date" && tableField.column_name != pk) {
+        return tableField;
+      }
+    })
+    const newExcelFields = excelFields.filter(tableField => {
+      if (tableField.valField != pk) {
+        return tableField;
+      }
+    })
+
+    const differenceInExcelToVAL = newExcelFields.filter(excelField => {
+      if (systemFields.find(({ column_name }) => column_name == excelField.valField)) {
+      } else {
+        return excelField
+      }
+    })
+    const differenceInExcelFromVAL = systemFields.filter(systemField => {
+      if (newExcelFields.find(({ valField }) => valField == systemField.column_name)) {
+      } else {
+        return systemField;
+      }
+    })
+    const differences = differenceInExcelToVAL.concat(differenceInExcelFromVAL)
+
+    if (differences && differences.length > 0) {
+      return differences;
+    } else {
+      return []
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+function rowValidation(incomingRows, existingRows) {
+  try {
+    console.log(incomingRows, existingRows)
+    console.log("VALIDATE MEEE ROWS")
+    if (incomingRows && incomingRows.length > 0 && existingRows && existingRows.length > 0) {
+      return incomingRows.length - existingRows.length;
+    } else {
+      return false
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
 }

@@ -35,6 +35,7 @@ module.exports = {
 			'./src/taskpane/taskpane.js',
 		],
 		popup: ['@babel/polyfill', './src/taskpane/popup.js'],
+		confirmation: ['@babel/polyfill', './src/taskpane/confirmation.js'],
 	},
 	mode: 'development',
 	output: {

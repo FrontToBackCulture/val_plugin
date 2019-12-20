@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Confirmation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="node_modules/office-ui-fabric-js/dist/css/fabric.min.css" />
+    <link rel="stylesheet" href="node_modules/office-ui-fabric-js/dist/css/fabric.components.css" />
+    <link rel="stylesheet" href="app.css" />
+
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.2.1.min.js"></script>
+    <script type="text/javascript" src="/build/confirmation.bundle.js"></script>
+
+    <script src="/node_modules/office-ui-fabric-js/dist/js/fabric.min.js"></script>
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.min.css" />
+    <link rel="stylesheet" href="/node_modules/office-ui-fabric-js/dist/css/fabric.components.min.css" />
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body style="display:flex;flex-direction:column;">
+    <div class="padding">
+        <p id="messageDialog" class="headerText">Data has been changed since the last download. Proceed and overwrite existing data?</p>
+    </div>
+
+    <div class="padding headerText" style="float: left; justify-content: space-between;">
+        <button id="ok-button" class="ms-Button">OK</button>
+        <button id="cancel-button" class="ms-Button">Cancel</button>
+    </div>
+    </div>
+
+</body>
+<script src="/node_modules/lodash/lodash.min.js"></script>
+
+
+</html>
