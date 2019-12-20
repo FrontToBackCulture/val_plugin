@@ -133,7 +133,8 @@ app.get("/excel/updateRecord", (req, res) => {
             console.log(error)
             throw new Error(error);
         }
-        res.send();
+
+        res.send(body);
     });
 })
 

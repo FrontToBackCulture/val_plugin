@@ -828,7 +828,15 @@ function prepDataForUpdate(pk, tableDetails, selectedColumnObj) {
           }
           $.ajax({ url: "/excel/updateRecord", data: all_params })
             .done(function (res) {
-              handleNotification("Successfully uploaded data into VAL", 'success');
+              if (res) {
+                let result = JSON.parse(res)
+                if (result && result.message && result.message != "") {
+                  handleNotification(`${result.message}`)
+                }
+              }
+              else {
+                handleNotification("Successfully uploaded data into VAL", 'success');
+              }
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
               handleNotification("Error.There was an error. Please try again")
