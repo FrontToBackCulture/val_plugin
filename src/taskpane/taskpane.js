@@ -48,16 +48,25 @@ function login() {
   try {
     let user = document.getElementById("userName").value;
     let pass = document.getElementById("userPass").value;
-    let requestObj = { url: "/excel/login", data: { email: user, password: pass } };
+    let team = document.getElementById("teamName").value;
+    let requestObj = {
+      url: "/excel/login", data: { email: user, password: pass, team: team }
+    };
     $.ajax(requestObj)
       .done(function (res) {
         if (res && res.user) {
           token = res.user;
           localStorage.setItem("user_token", token);
           checkLoginStatus();
+        } else if (res && res.message && res.message != "") {
+          console.log(res.message)
+          handleNotification('There was an error logging you in. Please try again, if the issue persists then contact support@thinkval.com');
+        } else if (res && res.error) {
+          handleNotification(`The email or password you have entered is incorrect`);
         }
       })
-      .fail(function (jqXHR, textStatus, errorThrown) { });
+      .fail(function (jqXHR, textStatus, errorThrown) {
+      });
   } catch (error) {
     console.error(error);
   }
