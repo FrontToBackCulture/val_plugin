@@ -1197,11 +1197,13 @@ function rowValidation(incomingRows, existingRows) {
 
 function handleSelectionDisplay() {
   try {
+
+    console.log(valObj.repoTableSelection[0])
     document.getElementById("selectionText").innerHTML = `<label>
     ${findProjectDisplayName(selectionModel.project)} > 
       ${findPhaseDisplayName(selectionModel.phase)} > 
       ${findRepoTypeDisplayName(selectionModel.repoType)} > 
-      ${valObj.repoTableSelection[0].repo_name} </label>`
+      ${valObj.repoTableSelection[0].name} </label>`
   }
   catch (err) {
     console.log(err);
