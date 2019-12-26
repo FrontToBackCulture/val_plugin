@@ -457,6 +457,9 @@ function getRepoInfo(obj) {
               let temp = currentTable.split("_")
               let repoIdToFind = temp[2]
               let table_pk = ''
+              let confirmDetails = {
+                type: "",
+              }
               getRepoTypeDetails()
                 .then(function (res) {
                   let currentRepo = res.find(({ repo_id }) => repo_id == parseInt(repoIdToFind))
@@ -465,11 +468,18 @@ function getRepoInfo(obj) {
                   localStorage.setItem("current_pk", JSON.stringify(table_pk));
                   if (checkForFieldDifference && checkForFieldDifference.length > 0) {
                     //Dialog for field difference
-                    localStorage.setItem("confirmationDialog", JSON.stringify(checkForFieldDifference))
+                    confirmDetails = {
+                      type: "Fields"
+                    }
+                    localStorage.setItem("confirmationDialog", JSON.stringify(confirmDetails))
                     openConfirmationDialog()
                   }
                   else if (checkForRowDifference && checkForRowDifference.length > 0) {
                     //Dialog for row difference
+                    confirmDetails = {
+                      type: "Rows"
+                    }
+                    localStorage.setItem("confirmationDialog", JSON.stringify(confirmDetails))
                     openConfirmationDialog()
                   } else {
                     if (!obj.overwrite && !pullFullData) {
@@ -1187,9 +1197,10 @@ function rowValidation(incomingRows, existingRows) {
 
 function handleSelectionDisplay() {
   try {
-    document.getElementById("selectionText").innerHTML = `<label style="margin-left: 3em;">
+    document.getElementById("selectionText").innerHTML = `<label>
     ${findProjectDisplayName(selectionModel.project)} > 
       ${findPhaseDisplayName(selectionModel.phase)} > 
+      ${findRepoTypeDisplayName(selectionModel.repoType)} > 
       ${valObj.repoTableSelection[0].repo_name} </label>`
   }
   catch (err) {
@@ -1219,6 +1230,20 @@ function findPhaseDisplayName(value) {
       }
     })
     return valueToFind[0].phase_name;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+function findRepoTypeDisplayName(value) {
+  try {
+    let valueToFind = valObj.allRepo.filter((item) => {
+      if (item.repo_id == value) {
+        return item
+      }
+    })
+    return valueToFind[0].repo_name;
   }
   catch (err) {
     console.log(err)

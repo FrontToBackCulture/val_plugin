@@ -138,3 +138,8 @@
   position: relative;
   display: block;
 }
+
+.label-item{
+  font-size: 11px;
+margin-left: 0.5em;
+}
