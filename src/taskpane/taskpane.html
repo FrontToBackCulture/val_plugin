@@ -94,31 +94,32 @@
 
         <div id="selectionContainer" class='container'>
             <div class="padding">
+                
+                <div id="projectDropdown" class="ms-Dropdown" tabindex="0">
+                    <label class="ms-Label">Select a Space </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="project_selection">
+                        <option value="0">Select a Space </option>
+                    </select>
+                </div>
+                <div id="phaseDropdown" class="ms-Dropdown is-disabled" tabindex="0">
+                    <label class="ms-Label">Select a Zone </label>
+                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
+                    <select class="ms-Dropdown-select" id="phase_selection">
+                        <option value="0">Select a Zone </option>
+                    </select>
+                </div>
                 <div id="repoTypeDropdown" class="ms-Dropdown" tabindex="0">
-                    <label class="ms-Label">Select a Repository Type </label>
+                    <label class="ms-Label">Select a Type </label>
                     <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
                     <select class="ms-Dropdown-select" id="repotype_selection">
                     </select>
                 </div>
-                <div id="projectDropdown" class="ms-Dropdown" tabindex="0">
-                    <label class="ms-Label">Select a Project </label>
-                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
-                    <select class="ms-Dropdown-select" id="project_selection">
-                        <option value="0">Select a Project </option>
-                    </select>
-                </div>
-                <div id="phaseDropdown" class="ms-Dropdown is-disabled" tabindex="0">
-                    <label class="ms-Label">Select a Phase </label>
-                    <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
-                    <select class="ms-Dropdown-select" id="phase_selection">
-                        <option value="0">Select a Phase </option>
-                    </select>
-                </div>
                 <div id="repoDropdown" class="ms-Dropdown is-disabled" tabindex="0">
-                    <label class="ms-Label">Select a Repository </label>
+                    <label class="ms-Label">Select a Table </label>
                     <i class="ms-Dropdown-caretDown ms-Icon ms-Icon--ChevronDown"></i>
                     <select class="ms-Dropdown-select" id="repo_selection">
-                        <option value="0">Select a Repository </option>
+                        <option value="0">Select a Table </option>
                     </select>
                 </div>
             </div>
@@ -126,7 +127,9 @@
 
 
         <div id="actionContainer" class="container">
-
+            <div id="selectionText" class="padding" > 
+                
+            </div>
             <div class="padding">
                 <button class="val-button" id="get-repo-info">Download data from VAL </button>
             </div>
@@ -137,36 +140,6 @@
                 <button class="val-button" id="open-dialog">Add or update field mapping</button>
             </div>
 
-            <!-- <div class="docs-DialogExample-blocking">
-                <div class="ms-Dialog ms-Dialog--blocking">
-                  <div class="ms-Dialog-title">Unsaved changes</div>
-                  <div class="ms-Dialog-content">
-                    <p class="ms-Dialog-subText">Are you sure you want to discard these changes?.</p>
-                    <div class="ms-CheckBox">
-                      <input tabindex="-1" type="checkbox" class="ms-CheckBox-input">
-                      <label role="checkbox" class="ms-CheckBox-field" tabindex="0" aria-checked="false" name="checkboxa">
-                        <span class="ms-Label">Option1</span> 
-                      </label>
-                    </div>
-                    <div class="ms-CheckBox">
-                      <input tabindex="-1" type="checkbox" class="ms-CheckBox-input">
-                      <label role="checkbox" class="ms-CheckBox-field" tabindex="0" aria-checked="false" name="checkboxa">
-                        <span class="ms-Label">Option2</span> 
-                      </label>
-                    </div>
-                  </div>
-                  <div class="ms-Dialog-actions">
-                    <button class="ms-Button ms-Dialog-action ms-Button--primary">
-                      <span class="ms-Button-label">Save</span> 
-                    </button>
-                    <button class="ms-Button ms-Dialog-action">
-                      <span class="ms-Button-label">Delete</span> 
-                    </button>
-                  </div>
-                </div>
-                <button class="ms-Button docs-DialogExample-button" id='open-dialog'>Open Dialog</button>
-                <label class="docs-DialogExample-label"></label>
-              </div> -->
             <div style="margin-top: 27em; margin-right:2em">
                 <button class="ms-Button" id="backButton">
                     <span class="ms-Button-label">Back</span>

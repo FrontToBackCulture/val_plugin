@@ -59,7 +59,6 @@ function login() {
           localStorage.setItem("user_token", token);
           checkLoginStatus();
         } else if (res && res.message && res.message != "") {
-          console.log(res.message)
           handleNotification('There was an error logging you in. Please try again, if the issue persists then contact support@thinkval.com');
         } else if (res && res.error) {
           handleNotification(`The email or password you have entered is incorrect`);
@@ -151,7 +150,7 @@ function setOptionsForDropDown(type) {
       case "repoTypeDropdown":
         theDropDown = document.getElementById(type);
         theDropDown.querySelector("select").innerHTML =
-          '<option value="0">Select a Repository Type </option>';
+          '<option value="0">Select a Type </option>';
         valObj.allRepo.map(function (repo) {
 
           // theDropDown.querySelector("select").innerHTML += '<option value="${repo.repo_id}">${repo.repo_name}</option>';
@@ -299,6 +298,8 @@ function checkSelections() {
     else {
       // next page
       getSettings()
+      // add space>zone>table
+      handleSelectionDisplay();
       $('#loginContainer').hide();
       $('#selectionContainer').hide();
       $('#actionContainer').show();
@@ -367,7 +368,6 @@ function getRepoInfo(obj) {
           }
         }
 
-        console.log("fullData", fullData)
         if (fullData) {
           let options = {
             api_token: token,
@@ -516,18 +516,16 @@ function updateDisplayTable(pk_db, content, columns) {
     let findpk = content.fields.find(({ column_name }) => column_name == pk_db)
     // // let findpk = content.fields.filter(item => item.column_name == pk_db)
 
-    console.log("findpk1", findpk)
-    let pk = findpk.display
+    let pk = findpk.display;
     // let pk = JSON.parse(localStorage.getItem("current_pk"));
     // console.log("findpk", pk)
     return ctx.sync()
       .then(function () {
         // let headers = _.flatten(headerRange.values);
-        console.log("Check me please", headerRange.values)
+
         // let headers = headerRange.values.flat();
-        let headers = headerRange.values.reduce((acc, val) => acc.concat(val), [])
-        console.log("Check me", headers)
-        let toUpdateValues = []
+        let headers = headerRange.values.reduce((acc, val) => acc.concat(val), []);
+        let toUpdateValues = [];
         let bodyContent = bodyRange.values;
         content.records.map((val, key) => {
           let obj = {};
@@ -569,7 +567,6 @@ function updateDisplayTable(pk_db, content, columns) {
           newData.push(row)
 
           //update bodyContent
-          console.log("WATASHI WA")
           displayColumn.map((col) => {
             if (col == pk) {
             } else {
@@ -1172,3 +1169,44 @@ function rowValidation(incomingRows, existingRows) {
     console.log(err)
   }
 }
+
+function handleSelectionDisplay() {
+  try {
+    document.getElementById("selectionText").innerHTML = `<label style="margin-left: 3em;">
+    ${findProjectDisplayName(selectionModel.project)} > 
+      ${findPhaseDisplayName(selectionModel.phase)} > 
+      ${valObj.repoTableSelection[0].repo_name} </label>`
+  }
+  catch (err) {
+    console.log(err);
+  }
+}
+
+function findProjectDisplayName(value) {
+  try {
+    let valueToFind = valObj.projects.filter((item) => {
+      if (item.project_id == value) {
+        return item
+      }
+    })
+    return valueToFind[0].project_name;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+function findPhaseDisplayName(value) {
+  try {
+    let valueToFind = valObj.phases.filter((item) => {
+      if (item.phase_id == value) {
+        return item
+      }
+    })
+    return valueToFind[0].phase_name;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
