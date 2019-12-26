@@ -96,7 +96,7 @@ function getRepoTypeDetails() {
       $.ajax({ url: "/excel/getRepoTypes", data: { api_token: token } })
         .done(function (repoTypes) {
           valObj.allRepo = repoTypes;
-          setOptionsForDropDown("repoTypeDropdown");
+          // setOptionsForDropDown("repoTypeDropdown");
           resolve(repoTypes);
         })
         .fail(function (jqXHR, textStatus, errorThrown) { });
@@ -123,13 +123,19 @@ function getUserProjects() {
 }
 
 
-function getUserPhases() {
+function getUserPhases(selectedProject) {
   //add check so dont have to make rest call all the time 
   return new Promise(function (resolve, reject) {
     if (token) {
       $.ajax({ url: "/excel/getUserPhases", data: { api_token: token } })
         .done(function (phases) {
-          valObj.phases = phases;
+          console.log(valObj)
+          // const userPhases = valObj.projects.filter(item => {
+          //   return phases.find(({ phase_pr_id }) => phase_pr_id == item.project_id);
+          // })
+          const selectedPhases = phases.filter(item => item.phase_pr_id == selectedProject)
+          console.log(selectedPhases)
+          valObj.phases = selectedPhases;
           setOptionsForDropDown('phaseDropdown');
           resolve(phases);
         })
@@ -151,11 +157,16 @@ function setOptionsForDropDown(type) {
         theDropDown = document.getElementById(type);
         theDropDown.querySelector("select").innerHTML =
           '<option value="0">Select a Type </option>';
-        valObj.allRepo.map(function (repo) {
 
-          // theDropDown.querySelector("select").innerHTML += '<option value="${repo.repo_id}">${repo.repo_name}</option>';
-          theDropDown.querySelector("select").innerHTML += "<option value = " + repo.repo_id + ">" + repo.repo_name + "</option>";
+        // valObj.allRepo.map(function (repo) {
+        //   // theDropDown.querySelector("select").innerHTML += '<option value="${repo.repo_id}">${repo.repo_name}</option>';
+        //   theDropDown.querySelector("select").innerHTML += "<option value = " + repo.repo_id + ">" + repo.repo_name + "</option>";
+        // });
+        console.log(valObj.phases)
+        valObj.phases[0].repo_phase_data.map(function (repo) {
+          theDropDown.querySelector("select").innerHTML += "<option value = " + repo.id + ">" + repo.name + "</option>";
         });
+
 
         break;
       case "projectDropdown":
@@ -172,7 +183,9 @@ function setOptionsForDropDown(type) {
         theDropDown.querySelector(
           "select"
         ).innerHTML = '<option value="0">Select a Phase </option>';
+        if (selectionModel.project) {
 
+        }
         valObj.phases.map(function (phase) {
           theDropDown.querySelector("select").innerHTML += "<option value = " + phase.phase_id + ">" + phase.phase_name + "</option>";
         });
@@ -241,17 +254,19 @@ function repoSelectionChange() {
 function handleSelectionChanges(type, valueToStore) {
   switch (type) {
     case "repo_type":
+
       selectionModel.repoType = valueToStore;
       getTableDetails(valueToStore);
       break;
     case "project":
       selectionModel.project = valueToStore;
       // trigger function to retrieve phases
-      getUserPhases();
+      getUserPhases(valueToStore);
       break;
     case "phase":
       //trigger function to retrieve tables
       selectionModel.phase = valueToStore;
+      setOptionsForDropDown("repoTypeDropdown")
       break;
     case "repo":
       // goes to selection page.
