@@ -236,6 +236,8 @@ function handleReinitialization(type) {
 function repoTypeSelectionChange() {
   var optionSelected = $('#repotype_selection option:selected').val();
   handleSelectionChanges("repo_type", optionSelected);
+
+  document.getElementById("selectionText").innerHTML = ""
 }
 
 function projectSelectionChange() {
@@ -1198,12 +1200,13 @@ function rowValidation(incomingRows, existingRows) {
 function handleSelectionDisplay() {
   try {
 
-    console.log(valObj.repoTableSelection[0])
+    console.log(valObj.repoTableSelection)
+    console.log(selectionModel)
     document.getElementById("selectionText").innerHTML = `<label>
     ${findProjectDisplayName(selectionModel.project)} > 
       ${findPhaseDisplayName(selectionModel.phase)} > 
       ${findRepoTypeDisplayName(selectionModel.repoType)} > 
-      ${valObj.repoTableSelection[0].name} </label>`
+      ${findTableDisplayName(selectionModel.repo)} </label>`
   }
   catch (err) {
     console.log(err);
@@ -1252,3 +1255,16 @@ function findRepoTypeDisplayName(value) {
   }
 }
 
+function findTableDisplayName(value) {
+  try {
+    let valueToFind = valObj.repoTableSelection.filter((item) => {
+      if (item.tablename == value) {
+        return item
+      }
+    })
+    return valueToFind[0].name;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
